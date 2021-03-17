@@ -1,14 +1,8 @@
 #ifndef __POWER_CENTER_PROFILE__
 #define __POWER_CENTER_PROFILE__
 
-#define PROF_QUIET "../profiles/quiet.ini"
-#define PROF_NORMAL "../profiles/normal.ini"
-
-typedef struct conf_value
-{
-    int address;
-    unsigned char value;
-} ConfValue_t;
+#define PROF_QUIET "/home/luca/Scrivania/PowerCenter/profiles/quiet.ini"
+#define PROF_NORMAL "/home/luca/Scrivania/PowerCenter/profiles/normal.ini"
 
 typedef struct profile{
     unsigned char *cpu_temps;
