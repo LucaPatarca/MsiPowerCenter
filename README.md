@@ -1,8 +1,8 @@
 # MsiPowerCenter
-### :warning: **WARNING!** this project is in an early state, it may not work at all on computers other than mine. In any case, even in its final state it will probably just work on MSI computers at best.
+### :warning: **WARNING!** this project is in an early state, it may not work at all on computers other than mine. In any case, even in its final state it will probably just work on MSI computers at best. Use it at your own risk!
 
 ### Description
-This project is my best try on making a **Linux** application to manage the fans, power consumption and performance on my MSI Prestige 15. The idea comes from the official app **MSI Center for Business & Productivity** which only runs on Windows (thanks MSI). 
+This project is my best try on making a **Linux** application to manage the fans, power consumption and performance on my MSI Prestige 15 a11scx laptop. The idea comes from the official app **MSI Center for Business & Productivity** which only runs on Windows (thanks MSI). 
 
 #### Credits
 I wouldn't have even started if i didn't find this repo: https://github.com/YoyPa/isw where i found this super useful [document](https://github.com/YoyPa/isw/blob/master/wiki/msi%20ec.pdf) that explains how the EC (Embedded Controller) on MSI computers works. 
