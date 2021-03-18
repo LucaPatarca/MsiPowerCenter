@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.0.0)
 project(PowerCenter VERSION 0.1.0)
 
-add_executable(PowerCenter src/main.c src/profile.h src/profile.c src/ec.h src/ec.c src/cpupower.h src/cpupower.c)
+add_executable(PowerCenter src/main.c src/profile.h src/profile.c src/ec.h src/ec.c src/cpupower.h src/cpupower.c src/util.h src/util.c)
 
 set(CPACK_PROJECT_NAME ${PROJECT_NAME})
 set(CPACK_PROJECT_VERSION ${PROJECT_VERSION})
