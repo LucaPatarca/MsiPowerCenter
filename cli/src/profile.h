@@ -1,10 +1,8 @@
 #ifndef __POWER_CENTER_PROFILE__
 #define __POWER_CENTER_PROFILE__
 
-#define PROF_QUIET "/home/luca/Scrivania/PowerCenter/profiles/quiet.ini"
-#define PROF_NORMAL "/home/luca/Scrivania/PowerCenter/profiles/normal.ini"
-
 typedef struct profile{
+    char *name;
     unsigned char *cpu_temps;
     unsigned char *gpu_temps;
     unsigned char *cpu_speeds;

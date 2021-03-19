@@ -9,6 +9,7 @@
 #define GROUP_FAN "Fan"
 #define GROUP_POWER "Power"
 
+#define KEY_NAME "Name"
 #define KEY_CPU_TEMPS "CpuTemps"
 #define KEY_GPU_TEMPS "GpuTemps"
 #define KEY_CPU_FAN_SPEEDS "CpuFanSpeeds"
@@ -154,6 +155,11 @@ int read_cpu_energy_pref(Profile_t *profile, GKeyFile *file){
         return 1;
 }
 
+int read_profile_name(Profile_t *profile, GKeyFile *file){
+    profile->name = read_config_string(file,GROUP_GENERAL,KEY_NAME);
+    return !profile->name;
+}
+
 Profile_t *open_profile(const char *filename){
     Profile_t *profile = malloc(sizeof(Profile_t));
     GKeyFile *file = g_key_file_new();
@@ -176,6 +182,7 @@ Profile_t *open_profile(const char *filename){
     error |= read_cpu_max_perf(profile,file);
     error |= read_cpu_min_perf(profile,file);
     error |= read_cpu_turbo_enabled(profile,file);
+    error |= read_profile_name(profile,file);
     g_key_file_free(file);
     if(error){
         free_profile(profile);

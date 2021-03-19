@@ -11,7 +11,7 @@ extern char *optarg;
 extern int optind;
 
 void print_usage(){
-    printf("Usage:\n\tpowercenter [normal|quiet]\n");
+    printf("Usage:\n\tpowercenter [-r] [-p profile-path] [-b battery-level]\n");
 }
 
 void print_current_profile(){
@@ -46,7 +46,7 @@ void print_current_profile(){
 int main(int argc, char **argv){
     int battery_carging_threshold = -1, opt = 0, read = 0;
 
-	char *endptr = NULL, *profile_name = NULL;
+	char *endptr = NULL, *profile_path = NULL;
 
 	//parsing degli argomenti con il trattino
 	while ((opt = getopt(argc, argv, "p:rb:")) != -1)
@@ -59,7 +59,7 @@ int main(int argc, char **argv){
 			endptr = NULL;
 			break;
 		case 'p':
-			profile_name = optarg;
+			profile_path = optarg;
 			break;
 		case 'r':
 			read = 1;
@@ -71,32 +71,22 @@ int main(int argc, char **argv){
 			return 1;
 		}
 
-	if(argc > optind || (!profile_name && !read && battery_carging_threshold<30)){
+	if(argc > optind || (!profile_path && !read && battery_carging_threshold<30)){
 		print_usage();
 		return 1;
 	}
 
 	//controllo se c'è un profilo da impostare
-	if (profile_name)
+	if (profile_path)
 	{
-        if(strcmp(profile_name,"quiet") == 0){
-            Profile_t *profile = open_profile(PROF_QUIET);
-			if(!profile)
-				return 1;
-            apply_ec_profile(profile);
-			apply_cpu_profile(profile);
-			free_profile(profile);
-        } else if(strcmp(profile_name,"normal") == 0){
-            Profile_t *profile = open_profile(PROF_NORMAL);
-			if(!profile)
-				return 1;
-            apply_ec_profile(profile);
-			apply_cpu_profile(profile);
-			free_profile(profile);
-        } else{
-            print_usage();
-            return 1;
-        }
+        Profile_t *profile = open_profile(profile_path);
+		if(!profile){
+			return 1;
+		}
+        apply_ec_profile(profile);
+		apply_cpu_profile(profile);
+		printf("Applied profile: %s\n",profile->name);
+		free_profile(profile);
 	}
 
 	if(read){
