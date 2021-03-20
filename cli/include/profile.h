@@ -1,16 +1,8 @@
 #ifndef __POWER_CENTER_PROFILE__
 #define __POWER_CENTER_PROFILE__
 
-#define PROF_QUIET "../profiles/quiet.ini"
-#define PROF_NORMAL "../profiles/normal.ini"
-
-typedef struct conf_value
-{
-    int address;
-    unsigned char value;
-} ConfValue_t;
-
 typedef struct profile{
+    char *name;
     unsigned char *cpu_temps;
     unsigned char *gpu_temps;
     unsigned char *cpu_speeds;
@@ -22,7 +14,7 @@ typedef struct profile{
     char *cpu_energy_pref;
     int cpu_max_perf;
     int cpu_min_perf;
-    int cpu_no_turbo;
+    int cpu_turbo_enabled;
 } Profile_t;
 
 Profile_t *open_profile(const char *filename);

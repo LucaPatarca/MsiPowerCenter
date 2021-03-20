@@ -2,8 +2,11 @@
 #include <stdlib.h>
 #include "ec.h"
 #include "profile.h"
-
+#ifndef NDEBUG
+#define EC_PATH "/home/luca/Scrivania/PowerCenter/mockFiles/io"
+#else
 #define EC_PATH "/sys/kernel/debug/ec/ec0/io"
+#endif
 
 #define CPU_TEMP_START              0x6A
 #define CPU_TEMP_END                0x70
@@ -26,7 +29,7 @@
 FILE *ec = NULL;
 
 int open_ec(){
-    ec = fopen(EC_PATH,"wb");
+    ec = fopen(EC_PATH,"rb+");
     return ec != NULL;
 }
 
@@ -83,4 +86,61 @@ int set_cooler_boost_off(){
 int set_charging_threshold(unsigned char threshold){
     unsigned char formatted_threshold = threshold+0x80;
     write_ec(CHARGING_THRESHOLD_ADDR,&formatted_threshold,1);
+    return 0;
+}
+
+unsigned char read_ec_value(int address){
+    if(fseek(ec,address,SEEK_SET)!=0){
+        perror("seek error");
+        return -1;
+    }
+    unsigned char result = 1;
+    if(fread(&result,1,1,ec)<=0){
+        perror("ec_read");
+        return -1;
+    }
+    return result;
+}
+
+unsigned char *read_ec_value_array(int start, int end){
+    unsigned char *array = malloc((end-start+1)*sizeof(unsigned char));
+    for(int i=start;i<=end;i++){
+        array[i-start] = read_ec_value(i);
+    }
+    return array;
+}
+
+unsigned char *get_cpu_temps(){
+    return read_ec_value_array(CPU_TEMP_START, CPU_TEMP_END);
+}
+
+unsigned char *get_gpu_temps(){
+    return read_ec_value_array(GPU_TEMP_START, GPU_TEMP_END);
+}
+
+unsigned char *get_cpu_fan_speeds(){
+    return read_ec_value_array(CPU_FAN_START, CPU_FAN_END);
+}
+
+unsigned char *get_gpu_fan_speeds(){
+    return read_ec_value_array(GPU_FAN_START, GPU_FAN_END);
+}
+
+unsigned char is_cooler_boost_enabled(){
+    return read_ec_value(COOLER_BOOST_ADDR)>=COOLER_BOOST_ON;
+}
+
+unsigned char get_charging_threshold(){
+    return read_ec_value(CHARGING_THRESHOLD_ADDR)-0x80;
+}
+
+int read_ec_profile(Profile_t *profile){
+    open_ec();
+    profile->cpu_temps = get_cpu_temps();
+    profile->gpu_temps = get_gpu_temps();
+    profile->cpu_speeds = get_cpu_fan_speeds();
+    profile->gpu_speeds = get_gpu_fan_speeds();
+    profile->cooler_boost_enabled = is_cooler_boost_enabled();
+    close_ec();
+    return 0;
 }
