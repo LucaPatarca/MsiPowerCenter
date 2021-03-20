@@ -38,7 +38,7 @@ void print_current_profile(){
 	for(int i=0; i<7;i++)
 		printf("%d ",profile->gpu_speeds[i]);
 	printf("\n");
-	printf("cooler boost: %s\nbattery charging threshold: %d\n",profile->cpu_turbo_enabled?"enabled":"disabled",profile->charging_threshold);
+	printf("cooler boost: %s\n",profile->cooler_boost_enabled?"enabled":"disabled");
 
 	free_profile(profile);
 }
@@ -48,7 +48,6 @@ int main(int argc, char **argv){
 
 	char *endptr = NULL, *profile_path = NULL;
 
-	//parsing degli argomenti con il trattino
 	while ((opt = getopt(argc, argv, "p:rb:")) != -1)
 		switch (opt)
 		{
@@ -65,7 +64,7 @@ int main(int argc, char **argv){
 			read = 1;
 			break;
 		case '?':
-			printf("argomenti errati\n");
+			printf("wrong arguments\n");
 			return 1;
 		default:
 			return 1;

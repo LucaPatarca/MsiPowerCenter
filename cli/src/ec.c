@@ -2,8 +2,11 @@
 #include <stdlib.h>
 #include "ec.h"
 #include "profile.h"
-
+#ifndef NDEBUG
+#define EC_PATH "/home/luca/Scrivania/PowerCenter/mockFiles/io"
+#else
 #define EC_PATH "/sys/kernel/debug/ec/ec0/io"
+#endif
 
 #define CPU_TEMP_START              0x6A
 #define CPU_TEMP_END                0x70
@@ -83,6 +86,7 @@ int set_cooler_boost_off(){
 int set_charging_threshold(unsigned char threshold){
     unsigned char formatted_threshold = threshold+0x80;
     write_ec(CHARGING_THRESHOLD_ADDR,&formatted_threshold,1);
+    return 0;
 }
 
 unsigned char read_ec_value(int address){
@@ -137,7 +141,6 @@ int read_ec_profile(Profile_t *profile){
     profile->cpu_speeds = get_cpu_fan_speeds();
     profile->gpu_speeds = get_gpu_fan_speeds();
     profile->cooler_boost_enabled = is_cooler_boost_enabled();
-    profile->charging_threshold = get_charging_threshold();
     close_ec();
     return 0;
 }

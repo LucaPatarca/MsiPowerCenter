@@ -163,9 +163,7 @@ int read_profile_name(Profile_t *profile, GKeyFile *file){
 Profile_t *open_profile(const char *filename){
     Profile_t *profile = malloc(sizeof(Profile_t));
     GKeyFile *file = g_key_file_new();
-    GError *gerror;
-    g_key_file_load_from_file(file,filename,G_KEY_FILE_NONE,&gerror);
-    if(gerror){
+    if(!g_key_file_load_from_file(file,filename,G_KEY_FILE_NONE,NULL)){
         perror(filename);
         return NULL;
     }

@@ -5,6 +5,19 @@
 #include "cpupower.h"
 #include "util.h"
 
+#ifndef NDEBUG
+#define SCALING_MAX_FREQ                "/home/luca/Scrivania/PowerCenter/mockFiles/scaling_max_freq"
+#define SCALING_MIN_FREQ                "/home/luca/Scrivania/PowerCenter/mockFiles/scaling_min_freq"
+#define SCALING_GOVERNOR                "/home/luca/Scrivania/PowerCenter/mockFiles/scaling_governor"
+#define CPUINFO_MAX_FREQ                "/home/luca/Scrivania/PowerCenter/mockFiles/cpuinfo_max_freq"
+#define CPUINFO_MIN_FREQ                "/home/luca/Scrivania/PowerCenter/mockFiles/cpuinfo_min_freq"
+#define SCALING_AVAILABLE_GOVERNORS     "/home/luca/Scrivania/PowerCenter/mockFiles/scaling_available_governors"
+#define ENERGY_PREF                     "/home/luca/Scrivania/PowerCenter/mockFiles/energy_performance_preference"
+#define ENERGY_AVAILABLE_PREFS          "/home/luca/Scrivania/PowerCenter/mockFiles/energy_performance_available_preferences"
+#define PSTATE_MAX_PERF                 "/home/luca/Scrivania/PowerCenter/mockFiles/max_perf_pct"
+#define PSTATE_MIN_PERF                 "/home/luca/Scrivania/PowerCenter/mockFiles/min_perf_pct"
+#define PSTATE_NO_TURBO                 "/home/luca/Scrivania/PowerCenter/mockFiles/no_turbo"
+#else
 #define SCALING_MAX_FREQ                "/sys/devices/system/cpu/cpu0/cpufreq/scaling_max_freq"
 #define SCALING_MIN_FREQ                "/sys/devices/system/cpu/cpu0/cpufreq/scaling_min_freq"
 #define SCALING_GOVERNOR                "/sys/devices/system/cpu/cpu0/cpufreq/scaling_governor"
@@ -16,6 +29,7 @@
 #define PSTATE_MAX_PERF                 "/sys/devices/system/cpu/intel_pstate/max_perf_pct"
 #define PSTATE_MIN_PERF                 "/sys/devices/system/cpu/intel_pstate/min_perf_pct"
 #define PSTATE_NO_TURBO                 "/sys/devices/system/cpu/intel_pstate/no_turbo"
+#endif
 
 int max_freq = -1;
 int min_freq = -1;
@@ -123,7 +137,7 @@ int set_max_freq(int freq){
         return 1;
     }
     FILE *file = fopen(SCALING_MAX_FREQ,"w");
-    fprintf(file,"%d",freq);
+    fprintf(file,"%d\n",freq);
     fclose(file);
     return 0;
 }
@@ -135,7 +149,7 @@ int set_min_freq(int freq){
         return 1;
     }
     FILE *file = fopen(SCALING_MIN_FREQ,"w");
-    fprintf(file,"%d",freq);
+    fprintf(file,"%d\n",freq);
     fclose(file);
     return 0;
 }
@@ -147,7 +161,7 @@ int set_min_perf(int perc){
         return 1;
     }
     FILE *file = fopen(PSTATE_MIN_PERF,"w");
-    fprintf(file,"%d",perc);
+    fprintf(file,"%d\n",perc);
     fclose(file);
     return 0;
 }
@@ -159,14 +173,14 @@ int set_max_perf(int perc){
         return 1;
     }
     FILE *file = fopen(PSTATE_MAX_PERF,"w");
-    fprintf(file,"%d",perc);
+    fprintf(file,"%d\n",perc);
     fclose(file);
     return 0;
 }
 
 int set_turbo_enabled(bool value){
     FILE *file = fopen(PSTATE_NO_TURBO,"w");
-    fprintf(file,"%d",value?0:1);
+    fprintf(file,"%d\n",value?0:1);
     fclose(file);
     return 0;
 }
@@ -178,7 +192,7 @@ int set_scaling_governor(const char *governor){
         return 1;
     }
     FILE *file = fopen(SCALING_GOVERNOR,"w");
-    fprintf(file,"%s",governor);
+    fprintf(file,"%s\n",governor);
     fclose(file);
     return 0;
 }
@@ -190,7 +204,7 @@ int set_energy_pref(const char *pref){
         return 1;
     }
     FILE *file = fopen(ENERGY_PREF,"w");
-    fprintf(file,"%s",pref);
+    fprintf(file,"%s\n",pref);
     fclose(file);
     return 0;
 }

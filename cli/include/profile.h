@@ -15,7 +15,6 @@ typedef struct profile{
     int cpu_max_perf;
     int cpu_min_perf;
     int cpu_turbo_enabled;
-    int charging_threshold;
 } Profile_t;
 
 Profile_t *open_profile(const char *filename);
