@@ -1,6 +1,7 @@
 import 'dart:ffi';
 
 import 'package:ffi/ffi.dart';
+import 'package:flutter/foundation.dart';
 import 'package:myapp/profiles.dart';
 
 typedef set_profile = Int32 Function(Pointer<Utf8> filepath);
@@ -86,9 +87,13 @@ class LibManager {
   DynamicLibrary _dylib;
   var _setProfile;
   var _readCurrentProfile;
+  final _libPath = kDebugMode == true
+      ? "../cli/vsbuild/libmsictrl.so"
+      : "/opt/MsiPowerCenter/lib/libmsictrl.so";
+  final _profilesPath =
+      kDebugMode == true ? "../profiles/" : "/opt/MsiPowerCenter/profiles/";
   LibManager() {
-    _dylib = DynamicLibrary.open(
-        "/home/luca/Scrivania/PowerCenter/cli/build/libmsictrl.so");
+    _dylib = DynamicLibrary.open(_libPath);
     _setProfile = _dylib.lookupFunction<set_profile, setProfile>("set_profile");
     _readCurrentProfile =
         _dylib.lookupFunction<read_current_profile, read_current_profile>(
@@ -96,7 +101,8 @@ class LibManager {
   }
 
   void writeProfile(Profile profile) {
-    String path = "../profiles/";
+    String path = _profilesPath;
+    print(_libPath);
     switch (profile) {
       case Profile.Performance:
         path = path + "performance.ini";

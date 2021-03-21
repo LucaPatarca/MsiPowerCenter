@@ -1,0 +1,7 @@
+[Desktop Entry]
+Type=Application
+Name=MsiPowerCenter
+Comment=A user-friendly application to manage your MSI computer
+Path=/opt/MsiPowerCenter
+Exec=pkexec /opt/MsiPowerCenter/gui
+Terminal=false
