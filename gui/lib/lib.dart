@@ -9,6 +9,16 @@ typedef setProfile = int Function(Pointer<Utf8> filepath);
 
 typedef read_current_profile = Pointer<ProfileStruct> Function();
 
+final _libPath = kDebugMode == true
+    ? "../cli/vsbuild/libmsictrl.so"
+    : "/opt/MsiPowerCenter/lib/libmsictrl.so";
+final _dylib = DynamicLibrary.open(_libPath);
+final _setProfile =
+    _dylib.lookupFunction<set_profile, setProfile>("set_profile");
+final _readCurrentProfile =
+    _dylib.lookupFunction<read_current_profile, read_current_profile>(
+        "read_current_profile");
+
 class ProfileStruct extends Struct {
   Pointer<Utf8> name;
   Pointer<Int8> cpuTemps;
@@ -32,23 +42,17 @@ class ProfileStruct extends Struct {
 }
 
 class LibManager {
-  DynamicLibrary _dylib;
-  var _setProfile;
-  var _readCurrentProfile;
-  final _libPath = kDebugMode == true
-      ? "../cli/vsbuild/libmsictrl.so"
-      : "/opt/MsiPowerCenter/lib/libmsictrl.so";
   final _profilesPath =
       kDebugMode == true ? "../profiles/" : "/opt/MsiPowerCenter/profiles/";
-  LibManager() {
-    _dylib = DynamicLibrary.open(_libPath);
-    _setProfile = _dylib.lookupFunction<set_profile, setProfile>("set_profile");
-    _readCurrentProfile =
-        _dylib.lookupFunction<read_current_profile, read_current_profile>(
-            "read_current_profile");
+
+  Future<ProfileAdapter> getOnSecondaryIsolate() async {
+    var res = await compute(getProfile, null);
+    var pointer = Pointer.fromAddress(res);
+    ProfileStruct struct = pointer.cast<ProfileStruct>().ref;
+    return new ProfileAdapter(struct);
   }
 
-  void writeProfile(Profile profile) {
+  Future<void> setOnSecondaryIsolate(Profile profile) async {
     String path = _profilesPath;
     switch (profile) {
       case Profile.Performance:
@@ -66,16 +70,19 @@ class LibManager {
       default:
         break;
     }
-    int res = _setProfile(path.toNativeUtf8());
-    if (res != 0) {
-      throw Exception("Unable to set profile");
-    }
+    return await compute(writeProfile, path);
   }
+}
 
-  Pointer<ProfileStruct> readCurrentProfile() {
-    Pointer<ProfileStruct> p = _readCurrentProfile();
-    return p;
+void writeProfile(String profilePath) {
+  int res = _setProfile(profilePath.toNativeUtf8());
+  if (res != 0) {
+    throw Exception("Unable to set profile");
   }
+}
+
+int getProfile(void v) {
+  return _readCurrentProfile().address;
 }
 
 class ProfileAdapter {
