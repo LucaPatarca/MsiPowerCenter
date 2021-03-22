@@ -29,58 +29,6 @@ class ProfileStruct extends Struct {
   int cpuMinPerf;
   @Int32()
   int cpuTurboEnabled;
-
-  String getName() {
-    return name.toDartString();
-  }
-
-  List<int> getCpuTemps() {
-    return cpuTemps.asTypedList(7);
-  }
-
-  List<int> getGpuTemps() {
-    return gpuTemps.asTypedList(7);
-  }
-
-  List<int> getCpuFanSpeeds() {
-    return cpuSpeeds.asTypedList(7);
-  }
-
-  List<int> getGpuFanSpeeds() {
-    return gpuSpeeds.asTypedList(7);
-  }
-
-  bool isCoolerBoostEnabled() {
-    return coolerBoostEnabled != 0;
-  }
-
-  int getCpuMaxFreq() {
-    return cpuMaxFreq;
-  }
-
-  int getCpuMinFreq() {
-    return cpuMinFreq;
-  }
-
-  String getCpuGovernor() {
-    return cpuGovernor.toDartString();
-  }
-
-  String getCpuEnergyPref() {
-    return cpuEnergyPref.toDartString();
-  }
-
-  int getCpuMaxPerf() {
-    return cpuMaxPerf;
-  }
-
-  int getCpuMinPerf() {
-    return cpuMinPerf;
-  }
-
-  bool isCpuTurboEnabled() {
-    return cpuTurboEnabled != 0;
-  }
 }
 
 class LibManager {
@@ -102,7 +50,6 @@ class LibManager {
 
   void writeProfile(Profile profile) {
     String path = _profilesPath;
-    print(_libPath);
     switch (profile) {
       case Profile.Performance:
         path = path + "performance.ini";
@@ -125,8 +72,76 @@ class LibManager {
     }
   }
 
-  ProfileStruct readCurrentProfile() {
+  Pointer<ProfileStruct> readCurrentProfile() {
     Pointer<ProfileStruct> p = _readCurrentProfile();
-    return p.ref;
+    return p;
   }
+}
+
+class ProfileAdapter {
+  final _emptyFanList = [
+    new FanConfig(46, 0),
+    new FanConfig(55, 0),
+    new FanConfig(64, 0),
+    new FanConfig(73, 0),
+    new FanConfig(82, 0),
+    new FanConfig(91, 0),
+    new FanConfig(100, 0),
+  ];
+
+  String name = "";
+  List<FanConfig> cpuFanConfig = List.empty();
+  List<FanConfig> gpuFanConfig = List.empty();
+  bool coolerBoostEnabled = false;
+  int cpuMaxFreq = 0;
+  int cpuMinFreq = 0;
+  String cpuGovernor = "null";
+  String cpuEnergyPref = "null";
+  int cpuMaxPerf = 0;
+  int cpuMinPerf = 0;
+  bool cpuTurboEnabled = false;
+
+  ProfileAdapter(ProfileStruct p) {
+    name = p.name.toDartString();
+    var cpuTemps = p.cpuTemps.asTypedList(7);
+    var gpuTemps = p.gpuTemps.asTypedList(7);
+    var cpuSpeeds = p.cpuSpeeds.asTypedList(7);
+    var gpuSpeeds = p.gpuSpeeds.asTypedList(7);
+    cpuFanConfig = List.empty(growable: true);
+    gpuFanConfig = List.empty(growable: true);
+    for (var i = 0; i < 7; i++) {
+      cpuFanConfig
+          .add(FanConfig(cpuTemps.elementAt(i), cpuSpeeds.elementAt(i)));
+      gpuFanConfig
+          .add(FanConfig(gpuTemps.elementAt(i), gpuSpeeds.elementAt(i)));
+    }
+    coolerBoostEnabled = p.coolerBoostEnabled != 0;
+    cpuMaxFreq = p.cpuMaxFreq;
+    cpuMinFreq = p.cpuMinFreq;
+    cpuGovernor = p.cpuGovernor.toDartString();
+    cpuEnergyPref = p.cpuEnergyPref.toDartString();
+    cpuMaxPerf = p.cpuMaxPerf;
+    cpuMinPerf = p.cpuMinPerf;
+    cpuTurboEnabled = p.cpuTurboEnabled != 0;
+  }
+
+  ProfileAdapter.empty() {
+    name = "empty";
+    cpuFanConfig = _emptyFanList;
+    gpuFanConfig = _emptyFanList;
+    coolerBoostEnabled = false;
+    cpuMaxFreq = 0;
+    cpuMinFreq = 0;
+    cpuGovernor = "null";
+    cpuEnergyPref = "null";
+    cpuMaxPerf = 0;
+    cpuMinPerf = 0;
+    cpuTurboEnabled = false;
+  }
+}
+
+class FanConfig {
+  FanConfig(this.temp, this.speed);
+  final int temp;
+  final int speed;
 }

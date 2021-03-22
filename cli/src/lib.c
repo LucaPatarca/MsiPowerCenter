@@ -17,7 +17,7 @@ int set_profile(const char *path){
 }
 
 Profile_t *read_current_profile(){
-    Profile_t * profile = malloc(sizeof(Profile_t));
+    Profile_t * profile = empty_profile();
 	read_cpu_profile(profile);
 	read_ec_profile(profile);
     return profile;

@@ -1,3 +1,4 @@
+import 'dart:ffi';
 import 'dart:ui';
 
 import 'package:flutter/foundation.dart';
@@ -5,14 +6,13 @@ import 'package:flutter/material.dart';
 import 'package:myapp/lib.dart';
 
 import 'package:myapp/profiles.dart';
+import 'package:charts_flutter/flutter.dart';
 
 LibManager manager = new LibManager();
-Future<void> computeFuture = Future.value();
+Future<void> setProfileFuture = Future.value();
+Future<ProfileStruct> getProfileFuture = Future.value();
 
 void main() {
-  final manager = new LibManager();
-  ProfileStruct p = manager.readCurrentProfile();
-  print(p.getCpuMaxPerf());
   runApp(App());
 }
 
@@ -31,7 +31,8 @@ class App extends StatelessWidget {
 }
 
 class HomePage extends StatefulWidget {
-  HomePage({Key key, this.title}) : super(key: key);
+  HomePage({Key key = const Key("key"), this.title = "Title"})
+      : super(key: key);
 
   final String title;
 
@@ -41,15 +42,29 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   Profile _profile = Profile.Changing;
+  ProfileAdapter _currentProfile = ProfileAdapter.empty();
 
-  VoidCallback createCallback(
+  _HomePageState() {
+    updateCurrentProfile();
+  }
+
+  void updateCurrentProfile() {
+    getOnSecondaryIsolate().then((value) {
+      setState(() {
+        _currentProfile = value;
+      });
+    });
+  }
+
+  VoidCallback setProfileCallback(
       BuildContext context, AsyncSnapshot snapshot, Profile profile) {
     if (snapshot.connectionState == ConnectionState.done) {
       return () {
         setState(() {
-          computeFuture = computeOnSecondaryIsolate(profile)
-              .then((value) => {_profile = profile})
-              .catchError((e) {
+          setProfileFuture = setOnSecondaryIsolate(profile).then((value) {
+            _profile = profile;
+            updateCurrentProfile();
+          }).catchError((e) {
             ScaffoldMessenger.of(context)
                 .showSnackBar(SnackBar(content: Text("Unable to set profile")));
           });
@@ -60,11 +75,18 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
-  Future<void> computeOnSecondaryIsolate(Profile profile) async {
+  Future<void> setOnSecondaryIsolate(Profile profile) async {
     setState(() {
       _profile = Profile.Changing;
     });
-    return await compute(fun, profile);
+    return await compute(setProfile, profile);
+  }
+
+  Future<ProfileAdapter> getOnSecondaryIsolate() async {
+    var res = await compute(getProfile, null);
+    var pointer = Pointer.fromAddress(res);
+    ProfileStruct struct = pointer.cast<ProfileStruct>().ref;
+    return new ProfileAdapter(struct);
   }
 
   @override
@@ -74,14 +96,33 @@ class _HomePageState extends State<HomePage> {
         title: Text(widget.title),
       ),
       body: Center(
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            createProfileButton(Profile.Performance),
-            createProfileButton(Profile.Balanced),
-            createProfileButton(Profile.Silent),
-            createProfileButton(Profile.Battery)
+            Spacer(),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                createProfileButton(Profile.Performance),
+                createProfileButton(Profile.Balanced),
+                createProfileButton(Profile.Silent),
+                createProfileButton(Profile.Battery)
+              ],
+            ),
+            Spacer(),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                Expanded(
+                    child: PointsLineChart(_currentProfile.cpuFanConfig,
+                        title: "Cpu Fans")),
+                Expanded(
+                    child: PointsLineChart(_currentProfile.gpuFanConfig,
+                        title: "Gpu Fans"))
+              ],
+            )
           ],
         ),
       ),
@@ -90,7 +131,7 @@ class _HomePageState extends State<HomePage> {
 
   FutureBuilder createProfileButton(Profile profile) {
     return FutureBuilder(
-      future: computeFuture,
+      future: setProfileFuture,
       builder: (context, snapshot) {
         return TextButton(
             child: Column(
@@ -109,7 +150,7 @@ class _HomePageState extends State<HomePage> {
                 ),
               ],
             ),
-            onPressed: createCallback(context, snapshot, profile));
+            onPressed: setProfileCallback(context, snapshot, profile));
       },
     );
   }
@@ -125,11 +166,72 @@ class _HomePageState extends State<HomePage> {
       case Profile.Battery:
         return Icons.battery_full;
       default:
-        return null;
+        return Icons.error;
     }
   }
 }
 
-void fun(Profile profile) {
+void setProfile(Profile profile) {
   manager.writeProfile(profile);
+}
+
+int getProfile(void v) {
+  return manager.readCurrentProfile().address;
+}
+
+class PointsLineChart extends StatefulWidget {
+  final List<FanConfig> data;
+  final String title;
+
+  PointsLineChart(this.data, {this.title = "", Key key = const Key("key")})
+      : super(key: key);
+
+  @override
+  _PointsLineChartState createState() => _PointsLineChartState();
+}
+
+class _PointsLineChartState extends State<PointsLineChart> {
+  List<Series<FanConfig, int>> series = List.empty();
+  bool animate = false;
+
+  void didUpdateWidget(covariant PointsLineChart old) {
+    if (old.data != widget.data) {
+      this.series = [
+        new Series<FanConfig, int>(
+          id: 'Fans',
+          colorFn: (_, __) => MaterialPalette.blue.shadeDefault,
+          domainFn: (FanConfig fc, _) => fc.temp,
+          measureFn: (FanConfig fc, _) => fc.speed,
+          data: widget.data,
+        )
+      ];
+      animate = true;
+    } else {
+      animate = false;
+    }
+    super.didUpdateWidget(old);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: 300,
+      height: 300,
+      child: new LineChart(
+        series,
+        animate: animate,
+        defaultRenderer: new LineRendererConfig(includePoints: true),
+        domainAxis: NumericAxisSpec(
+            tickProviderSpec: BasicNumericTickProviderSpec(zeroBound: false),
+            tickFormatterSpec:
+                BasicNumericTickFormatterSpec((i) => i.toString() + "C")),
+        primaryMeasureAxis: NumericAxisSpec(
+            tickFormatterSpec: BasicNumericTickFormatterSpec(
+                (i) => i.toInt().toString() + "%")),
+        behaviors: [
+          ChartTitle(widget.title, behaviorPosition: BehaviorPosition.top)
+        ],
+      ),
+    );
+  }
 }

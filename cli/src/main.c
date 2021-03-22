@@ -15,7 +15,7 @@ void print_usage(){
 }
 
 void print_current_profile(){
-	Profile_t * profile = malloc(sizeof(Profile_t));
+	Profile_t * profile = empty_profile();
 	read_cpu_profile(profile);
 	read_ec_profile(profile);
 
