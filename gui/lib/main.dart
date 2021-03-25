@@ -2,17 +2,14 @@ import 'dart:ui';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:myapp/lib.dart';
+import 'package:myapp/service/lib.dart';
 
 import 'package:myapp/profiles.dart';
-
-LibManager manager = new LibManager();
-Future<void> computeFuture = Future.value();
+import 'model/ProfileAdapter.dart';
+import 'widgets/FanCurve.dart';
+import 'widgets/ProfileButton.dart';
 
 void main() {
-  final manager = new LibManager();
-  ProfileStruct p = manager.readCurrentProfile();
-  print(p.getCpuMaxPerf());
   runApp(App());
 }
 
@@ -22,8 +19,14 @@ class App extends StatelessWidget {
     return MaterialApp(
       title: 'MSI Power Center',
       theme: ThemeData(
-        primarySwatch: Colors.blue,
-      ),
+          brightness: Brightness.light, accentColor: Colors.redAccent),
+      darkTheme: ThemeData(
+          brightness: Brightness.dark,
+          accentColor: Colors.redAccent[400],
+          primaryColor: Colors.black,
+          buttonColor: Colors.redAccent[400],
+          splashColor: Colors.red),
+      themeMode: ThemeMode.dark,
       home: HomePage(title: 'MSI Power Center'),
       debugShowCheckedModeBanner: false,
     );
@@ -31,7 +34,8 @@ class App extends StatelessWidget {
 }
 
 class HomePage extends StatefulWidget {
-  HomePage({Key key, this.title}) : super(key: key);
+  HomePage({Key key = const Key("key"), this.title = "Title"})
+      : super(key: key);
 
   final String title;
 
@@ -41,30 +45,20 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   Profile _profile = Profile.Changing;
+  ProfileAdapter _currentProfile = ProfileAdapter.empty();
+  LibManager manager = new LibManager();
+  String selection = "cpu";
 
-  VoidCallback createCallback(
-      BuildContext context, AsyncSnapshot snapshot, Profile profile) {
-    if (snapshot.connectionState == ConnectionState.done) {
-      return () {
-        setState(() {
-          computeFuture = computeOnSecondaryIsolate(profile)
-              .then((value) => {_profile = profile})
-              .catchError((e) {
-            ScaffoldMessenger.of(context)
-                .showSnackBar(SnackBar(content: Text("Unable to set profile")));
-          });
-        });
-      };
-    } else {
-      return null;
-    }
+  _HomePageState() {
+    updateCurrentProfile();
   }
 
-  Future<void> computeOnSecondaryIsolate(Profile profile) async {
-    setState(() {
-      _profile = Profile.Changing;
+  void updateCurrentProfile() {
+    manager.getOnSecondaryIsolate().then((value) {
+      setState(() {
+        _currentProfile = value;
+      });
     });
-    return await compute(fun, profile);
   }
 
   @override
@@ -74,62 +68,134 @@ class _HomePageState extends State<HomePage> {
         title: Text(widget.title),
       ),
       body: Center(
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            createProfileButton(Profile.Performance),
-            createProfileButton(Profile.Balanced),
-            createProfileButton(Profile.Silent),
-            createProfileButton(Profile.Battery)
+            Spacer(),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                ProfileButton(
+                  Profile.Performance,
+                  selected: _profile == Profile.Performance,
+                  afterProfileSet: defaultAfterProfileSet,
+                  whileProfileSet: defaultWhileProfileChanging,
+                ),
+                ProfileButton(
+                  Profile.Balanced,
+                  selected: _profile == Profile.Balanced,
+                  afterProfileSet: defaultAfterProfileSet,
+                  whileProfileSet: defaultWhileProfileChanging,
+                ),
+                ProfileButton(
+                  Profile.Silent,
+                  selected: _profile == Profile.Silent,
+                  afterProfileSet: defaultAfterProfileSet,
+                  whileProfileSet: defaultWhileProfileChanging,
+                ),
+                ProfileButton(
+                  Profile.Battery,
+                  selected: _profile == Profile.Battery,
+                  afterProfileSet: defaultAfterProfileSet,
+                  whileProfileSet: defaultWhileProfileChanging,
+                )
+              ],
+            ),
+            Spacer(),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                Expanded(
+                  child: FanCurve(_currentProfile),
+                ),
+                Expanded(
+                  child: SizedBox(
+                    height: 300,
+                    child: GridView.extent(
+                      maxCrossAxisExtent: 250,
+                      childAspectRatio: 2.5,
+                      shrinkWrap: true,
+                      children: [
+                        Card(
+                          child: ListTile(
+                            title: Text("Cpu Max Frequency"),
+                            subtitle:
+                                Text(_currentProfile.cpuMaxFreq.toString()),
+                          ),
+                        ),
+                        Card(
+                          child: ListTile(
+                            title: Text("Cpu Min Frequency"),
+                            subtitle:
+                                Text(_currentProfile.cpuMinFreq.toString()),
+                          ),
+                        ),
+                        Card(
+                          child: ListTile(
+                            title: Text("Cpu Max Performance"),
+                            subtitle: Text(
+                                _currentProfile.cpuMaxPerf.toString() + "%"),
+                          ),
+                        ),
+                        Card(
+                          child: ListTile(
+                            title: Text("Cpu Min Performance"),
+                            subtitle: Text(
+                                _currentProfile.cpuMinPerf.toString() + "%"),
+                          ),
+                        ),
+                        Card(
+                          child: ListTile(
+                            title: Text("Cpu governor"),
+                            subtitle: Text(_currentProfile.cpuGovernor),
+                          ),
+                        ),
+                        Card(
+                          child: ListTile(
+                            title: Text("Cpu Energy Pref"),
+                            subtitle: Text(_currentProfile.cpuEnergyPref),
+                          ),
+                        ),
+                        Card(
+                          child: ListTile(
+                            title: Text("Cpu turbo"),
+                            subtitle: Text(_currentProfile.cpuTurboEnabled
+                                ? "Enabled"
+                                : "Disabled"),
+                          ),
+                        ),
+                        Card(
+                          child: ListTile(
+                            title: Text("Cooler Boost"),
+                            subtitle: Text(_currentProfile.coolerBoostEnabled
+                                ? "Enabled"
+                                : "Disabled"),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                )
+              ],
+            )
           ],
         ),
       ),
     );
   }
 
-  FutureBuilder createProfileButton(Profile profile) {
-    return FutureBuilder(
-      future: computeFuture,
-      builder: (context, snapshot) {
-        return TextButton(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(
-                  getIconData(profile),
-                  color: _profile == profile
-                      ? Theme.of(context).accentColor
-                      : Theme.of(context).unselectedWidgetColor,
-                  size: 120,
-                ),
-                Text(
-                  profile.toString().replaceFirst("Profile.", ""),
-                  style: Theme.of(context).textTheme.headline6,
-                ),
-              ],
-            ),
-            onPressed: createCallback(context, snapshot, profile));
-      },
-    );
+  void defaultWhileProfileChanging() {
+    setState(() {
+      _profile = Profile.Changing;
+    });
   }
 
-  IconData getIconData(Profile profile) {
-    switch (profile) {
-      case Profile.Performance:
-        return Icons.speed;
-      case Profile.Balanced:
-        return Icons.equalizer;
-      case Profile.Silent:
-        return Icons.hearing_disabled;
-      case Profile.Battery:
-        return Icons.battery_full;
-      default:
-        return null;
-    }
+  void defaultAfterProfileSet(Profile profile) {
+    setState(() {
+      _profile = profile;
+      updateCurrentProfile();
+    });
   }
-}
-
-void fun(Profile profile) {
-  manager.writeProfile(profile);
 }

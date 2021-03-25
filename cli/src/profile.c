@@ -190,6 +190,12 @@ Profile_t *open_profile(const char *filename){
         return profile;
 }
 
+Profile_t *empty_profile(){
+    Profile_t *p = malloc(sizeof(Profile_t));
+    p->name = "empty";
+    return p;
+}
+
 void free_profile(Profile_t *profile){
     free(profile->cpu_temps);
     free(profile->gpu_temps);

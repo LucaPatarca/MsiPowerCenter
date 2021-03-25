@@ -19,6 +19,8 @@ typedef struct profile{
 
 Profile_t *open_profile(const char *filename);
 
+Profile_t *empty_profile();
+
 void free_profile(Profile_t *profile);
 
 #endif

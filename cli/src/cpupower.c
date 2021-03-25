@@ -2,30 +2,33 @@
 #include <stdlib.h>
 #include <string.h>
 #include <errno.h>
+#include <dirent.h>
 #include "cpupower.h"
 #include "util.h"
 
 #ifndef NDEBUG
-#define SCALING_MAX_FREQ                "/home/luca/Scrivania/PowerCenter/mockFiles/scaling_max_freq"
-#define SCALING_MIN_FREQ                "/home/luca/Scrivania/PowerCenter/mockFiles/scaling_min_freq"
-#define SCALING_GOVERNOR                "/home/luca/Scrivania/PowerCenter/mockFiles/scaling_governor"
-#define CPUINFO_MAX_FREQ                "/home/luca/Scrivania/PowerCenter/mockFiles/cpuinfo_max_freq"
-#define CPUINFO_MIN_FREQ                "/home/luca/Scrivania/PowerCenter/mockFiles/cpuinfo_min_freq"
-#define SCALING_AVAILABLE_GOVERNORS     "/home/luca/Scrivania/PowerCenter/mockFiles/scaling_available_governors"
-#define ENERGY_PREF                     "/home/luca/Scrivania/PowerCenter/mockFiles/energy_performance_preference"
-#define ENERGY_AVAILABLE_PREFS          "/home/luca/Scrivania/PowerCenter/mockFiles/energy_performance_available_preferences"
-#define PSTATE_MAX_PERF                 "/home/luca/Scrivania/PowerCenter/mockFiles/max_perf_pct"
-#define PSTATE_MIN_PERF                 "/home/luca/Scrivania/PowerCenter/mockFiles/min_perf_pct"
-#define PSTATE_NO_TURBO                 "/home/luca/Scrivania/PowerCenter/mockFiles/no_turbo"
+#define CPUFREQ_PATH                    "/home/luca/Scrivania/PowerCenter/mockFiles/cpufreq/"
+#define SCALING_MAX_FREQ                "/scaling_max_freq"
+#define SCALING_MIN_FREQ                "/scaling_min_freq"
+#define SCALING_GOVERNOR                "/scaling_governor"
+#define CPUINFO_MAX_FREQ                "/cpuinfo_max_freq"
+#define CPUINFO_MIN_FREQ                "/cpuinfo_min_freq"
+#define SCALING_AVAILABLE_GOVERNORS     "/scaling_available_governors"
+#define ENERGY_PREF                     "/energy_performance_preference"
+#define ENERGY_AVAILABLE_PREFS          "/energy_performance_available_preferences"
+#define PSTATE_MAX_PERF                 "/home/luca/Scrivania/PowerCenter/mockFiles/intel_pstate/max_perf_pct"
+#define PSTATE_MIN_PERF                 "/home/luca/Scrivania/PowerCenter/mockFiles/intel_pstate/min_perf_pct"
+#define PSTATE_NO_TURBO                 "/home/luca/Scrivania/PowerCenter/mockFiles/intel_pstate/no_turbo"
 #else
-#define SCALING_MAX_FREQ                "/sys/devices/system/cpu/cpu0/cpufreq/scaling_max_freq"
-#define SCALING_MIN_FREQ                "/sys/devices/system/cpu/cpu0/cpufreq/scaling_min_freq"
-#define SCALING_GOVERNOR                "/sys/devices/system/cpu/cpu0/cpufreq/scaling_governor"
-#define CPUINFO_MAX_FREQ                "/sys/devices/system/cpu/cpu0/cpufreq/cpuinfo_max_freq"
-#define CPUINFO_MIN_FREQ                "/sys/devices/system/cpu/cpu0/cpufreq/cpuinfo_min_freq"
-#define SCALING_AVAILABLE_GOVERNORS     "/sys/devices/system/cpu/cpu0/cpufreq/scaling_available_governors"
-#define ENERGY_PREF                     "/sys/devices/system/cpu/cpu0/cpufreq/energy_performance_preference"
-#define ENERGY_AVAILABLE_PREFS          "/sys/devices/system/cpu/cpu0/cpufreq/energy_performance_available_preferences"
+#define CPUFREQ_PATH                    "/sys/devices/system/cpu/"
+#define SCALING_MAX_FREQ                "/cpufreq/scaling_max_freq"
+#define SCALING_MIN_FREQ                "/cpufreq/scaling_min_freq"
+#define SCALING_GOVERNOR                "/cpufreq/scaling_governor"
+#define CPUINFO_MAX_FREQ                "/cpufreq/cpuinfo_max_freq"
+#define CPUINFO_MIN_FREQ                "/cpufreq/cpuinfo_min_freq"
+#define SCALING_AVAILABLE_GOVERNORS     "/cpufreq/scaling_available_governors"
+#define ENERGY_PREF                     "/cpufreq/energy_performance_preference"
+#define ENERGY_AVAILABLE_PREFS          "/cpufreq/energy_performance_available_preferences"
 #define PSTATE_MAX_PERF                 "/sys/devices/system/cpu/intel_pstate/max_perf_pct"
 #define PSTATE_MIN_PERF                 "/sys/devices/system/cpu/intel_pstate/min_perf_pct"
 #define PSTATE_NO_TURBO                 "/sys/devices/system/cpu/intel_pstate/no_turbo"
@@ -37,11 +40,36 @@ char *available_governors[32];
 char *energy_available_prefs[32];
 int governors_size = 0;
 int energy_prefs_size = 0;
+int cpu_count=0;
+
+void get_cpu_count(){
+    DIR * dir = opendir(CPUFREQ_PATH);
+    struct dirent * entry;
+    while((entry = readdir(dir)) != NULL){
+        if(strcmp(entry->d_name, ".") != 0 && strcmp(entry->d_name, "..")){
+            cpu_count++;
+        }
+    }
+}
+
+int cpus_read_int(const char *filename){
+    char filepath[256];
+    sprintf(filepath, "%scpu0%s", CPUFREQ_PATH, filename);
+    FILE *file = fopen(filepath,"r");
+    char str[256];
+    if(fread(str,256,1,file)<0){
+        fclose(file);
+        return -1;
+    }
+    int result = parse_int(str);
+    fclose(file);
+    return result;
+}
 
 int read_int(const char *filepath){
     FILE *file = fopen(filepath,"r");
-    char str[64];
-    if(fread(str,64,1,file)<0){
+    char str[256];
+    if(fread(str,256,1,file)<0){
         fclose(file);
         return -1;
     }
@@ -52,19 +80,21 @@ int read_int(const char *filepath){
 
 int get_max_available_freq(){
     if(max_freq<0){
-        max_freq = read_int(CPUINFO_MAX_FREQ);
+        max_freq = cpus_read_int(CPUINFO_MAX_FREQ);
     }
     return max_freq;
 }
 
 int get_min_available_freq(){
     if(min_freq<0){
-        min_freq = read_int(CPUINFO_MIN_FREQ);
+        min_freq = cpus_read_int(CPUINFO_MIN_FREQ);
     }
     return min_freq;
 }
 
-char *read_string(const char *filepath){
+char *read_string(const char *filename){
+    char filepath[256];
+    sprintf(filepath, "%scpu0%s", CPUFREQ_PATH, filename);
     FILE *file = fopen(filepath,"r");
     char *str = malloc(256);
     memset(str,0,256);
@@ -130,16 +160,41 @@ int is_energy_pref_available(const char *pref){
     return 0;
 }
 
+int cpus_write_int(const char *filename, int val){
+    FILE *file;
+    char filepath[256];
+    for(int i=0;i<cpu_count;i++){
+        memset(filepath, 0, 256);
+        sprintf(filepath, "%scpu%d%s", CPUFREQ_PATH, i, filename);
+        file = fopen(filepath,"w");
+        if(!file) return 1;
+        fprintf(file,"%d\n",val);
+        fclose(file);
+    }
+    return 0;
+}
+
+int cpus_write_string(const char *filename, const char *val){
+    FILE *file;
+    char filepath[256];
+    for(int i=0;i<cpu_count;i++){
+        memset(filepath, 0, 256);
+        sprintf(filepath, "%scpu%d%s", CPUFREQ_PATH, i, filename);
+        file = fopen(filepath,"w");
+        if(!file) return 1;
+        fprintf(file,"%s\n",val);
+        fclose(file);
+    }
+    return 0;
+}
+
 int set_max_freq(int freq){
     if(freq>get_max_available_freq()){
         errno = EINVAL;
         perror("La frequenza e maggiore della massima consentita");
         return 1;
     }
-    FILE *file = fopen(SCALING_MAX_FREQ,"w");
-    fprintf(file,"%d\n",freq);
-    fclose(file);
-    return 0;
+    return cpus_write_int(SCALING_MAX_FREQ, freq);
 }
 
 int set_min_freq(int freq){
@@ -148,10 +203,7 @@ int set_min_freq(int freq){
         perror("La frequenza e minore della minima consentita");
         return 1;
     }
-    FILE *file = fopen(SCALING_MIN_FREQ,"w");
-    fprintf(file,"%d\n",freq);
-    fclose(file);
-    return 0;
+    return cpus_write_int(SCALING_MIN_FREQ, freq);
 }
 
 int set_min_perf(int perc){
@@ -191,10 +243,7 @@ int set_scaling_governor(const char *governor){
         perror("Il governor non e tra quelli disponibili");
         return 1;
     }
-    FILE *file = fopen(SCALING_GOVERNOR,"w");
-    fprintf(file,"%s\n",governor);
-    fclose(file);
-    return 0;
+    return cpus_write_string(SCALING_GOVERNOR, governor);
 }
 
 int set_energy_pref(const char *pref){
@@ -203,13 +252,11 @@ int set_energy_pref(const char *pref){
         perror("la scelta non e tra quelli disponibili");
         return 1;
     }
-    FILE *file = fopen(ENERGY_PREF,"w");
-    fprintf(file,"%s\n",pref);
-    fclose(file);
-    return 0;
+    return cpus_write_string(ENERGY_PREF, pref);
 }
 
 int apply_cpu_profile(Profile_t *profile){
+    get_cpu_count();
     int error = 0;
     error |= set_max_freq(profile->cpu_max_freq);
     error |= set_min_freq(profile->cpu_min_freq);
@@ -222,11 +269,11 @@ int apply_cpu_profile(Profile_t *profile){
 }
 
 int get_max_freq(){
-    return read_int(SCALING_MAX_FREQ);
+    return cpus_read_int(SCALING_MAX_FREQ);
 }
 
 int get_min_freq(){
-    return read_int(SCALING_MIN_FREQ);
+    return cpus_read_int(SCALING_MIN_FREQ);
 }
 
 int get_min_perf(){
