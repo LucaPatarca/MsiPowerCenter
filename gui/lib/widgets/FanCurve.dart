@@ -4,7 +4,7 @@ import 'package:myapp/model/FanConfig.dart';
 import 'package:myapp/model/ProfileAdapter.dart';
 
 class FanCurve extends StatefulWidget {
-  final ProfileAdapter profile;
+  final ProfileClass profile;
 
   FanCurve(this.profile, {Key key}) : super(key: key);
 

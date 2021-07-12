@@ -22,6 +22,7 @@ class _ProfileButtonState extends State<ProfileButton> {
         ProfileProvider provider = context.read<ProfileProvider>();
         provider.setProfileSelection(Profile.Changing);
         setProfileFuture = provider.setProfile(profile).catchError((e) {
+          print(e);
           ScaffoldMessenger.of(context)
               .showSnackBar(SnackBar(content: Text("Unable to set profile")));
         });
@@ -41,7 +42,7 @@ class _ProfileButtonState extends State<ProfileButton> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Icon(
-                  getIconData(widget.profile),
+                  widget.profile.icon,
                   color:
                       context.watch<ProfileProvider>().getProfileSelection() ==
                               widget.profile
@@ -50,7 +51,7 @@ class _ProfileButtonState extends State<ProfileButton> {
                   size: 120,
                 ),
                 Text(
-                  widget.profile.toString().replaceFirst("Profile.", ""),
+                  widget.profile.name,
                   style: Theme.of(context).textTheme.headline6,
                 ),
               ],
@@ -58,20 +59,5 @@ class _ProfileButtonState extends State<ProfileButton> {
             onPressed: setProfileCallback(context, snapshot, widget.profile));
       },
     );
-  }
-
-  IconData getIconData(Profile profile) {
-    switch (profile) {
-      case Profile.Performance:
-        return Icons.speed;
-      case Profile.Balanced:
-        return Icons.equalizer;
-      case Profile.Silent:
-        return Icons.hearing_disabled;
-      case Profile.Battery:
-        return Icons.battery_full;
-      default:
-        return Icons.error;
-    }
   }
 }

@@ -5,7 +5,7 @@ import 'package:myapp/service/ProfileService.dart';
 import '../profiles.dart';
 
 class ProfileProvider with ChangeNotifier {
-  ProfileAdapter _profile = ProfileAdapter.empty();
+  ProfileClass _profile = ProfileClass.empty();
   Profile _selection = Profile.Changing;
   ProfileService service = new ProfileService();
 
@@ -22,13 +22,13 @@ class ProfileProvider with ChangeNotifier {
     return _selection;
   }
 
-  Future<ProfileAdapter> readProfile() async {
+  Future<ProfileClass> readProfile() async {
     _profile = await service.getProfile();
     notifyListeners();
     return _profile;
   }
 
-  ProfileAdapter getCurrentProfile() {
+  ProfileClass getCurrentProfile() {
     return _profile;
   }
 

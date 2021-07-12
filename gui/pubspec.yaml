@@ -25,6 +25,7 @@ dependencies:
   ffi: ^1.0.0
   path_provider:
   provider:
+  ini: ^2.1.0
     
   flutter:
     sdk: flutter

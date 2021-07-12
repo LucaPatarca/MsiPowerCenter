@@ -1,10 +1,11 @@
+import 'package:ini/ini.dart';
 import 'package:myapp/model/ProfileStruct.dart';
 import 'dart:ffi';
 import 'package:ffi/ffi.dart';
 
 import 'FanConfig.dart';
 
-class ProfileAdapter {
+class ProfileClass {
   final _emptyFanList = [
     new FanConfig(46, 0),
     new FanConfig(55, 0),
@@ -27,7 +28,7 @@ class ProfileAdapter {
   int cpuMinPerf = 0;
   bool cpuTurboEnabled = false;
 
-  ProfileAdapter(ProfileStruct p) {
+  ProfileClass(ProfileStruct p) {
     name = p.name.toDartString();
     var cpuTemps = p.cpuTemps.asTypedList(7);
     var gpuTemps = p.gpuTemps.asTypedList(7);
@@ -51,7 +52,35 @@ class ProfileAdapter {
     cpuTurboEnabled = p.cpuTurboEnabled != 0;
   }
 
-  ProfileAdapter.empty() {
+  ProfileClass.fromConfig(Config config) {
+    this.name = config.get("General", "Name");
+    cpuFanConfig = List.empty(growable: true);
+    gpuFanConfig = List.empty(growable: true);
+    var cpuTemps = config.get("Temperature", "CpuTemps").split(";");
+    var cpuSpeeds = config.get("Fan", "CpuFanSpeeds").split(";");
+    for (int i = 0; i < 7; i++) {
+      cpuFanConfig
+          .add(new FanConfig(int.parse(cpuTemps[i]), int.parse(cpuSpeeds[i])));
+    }
+    var gpuTemps = config.get("Temperature", "GpuTemps").split(";");
+    var gpuSpeeds = config.get("Fan", "GpuFanSpeeds").split(";");
+    for (int i = 0; i < 7; i++) {
+      gpuFanConfig
+          .add(new FanConfig(int.parse(gpuTemps[i]), int.parse(gpuSpeeds[i])));
+    }
+    this.coolerBoostEnabled =
+        config.get("Fan", "CoolerBoost").toLowerCase() == "true";
+    this.cpuMaxFreq = int.parse(config.get("Power", "CpuMaxFreq"));
+    this.cpuMinFreq = int.parse(config.get("Power", "CpuMinFreq"));
+    this.cpuGovernor = config.get("Power", "CpuScalingGovernor");
+    this.cpuEnergyPref = config.get("Power", "CpuEnergyPreference");
+    this.cpuMaxPerf = int.parse(config.get("Power", "CpuMaxPerf"));
+    this.cpuMinPerf = int.parse(config.get("Power", "CpuMinPerf"));
+    this.cpuTurboEnabled =
+        config.get("Power", "CpuTurboEnabled").toLowerCase() == "true";
+  }
+
+  ProfileClass.empty() {
     name = "empty";
     cpuFanConfig = _emptyFanList;
     gpuFanConfig = _emptyFanList;

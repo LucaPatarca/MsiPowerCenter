@@ -4,7 +4,7 @@ import 'package:myapp/provider/ProfileProvider.dart';
 import 'package:provider/provider.dart';
 
 class ProfileInfo extends StatelessWidget {
-  final ProfileAdapter profile;
+  final ProfileClass profile;
   const ProfileInfo({Key key, this.profile}) : super(key: key);
 
   @override

@@ -4,4 +4,5 @@ Name=MsiPowerCenter
 Comment=A user-friendly application to manage your MSI computer
 Path=/opt/MsiPowerCenter
 Exec=pkexec /opt/MsiPowerCenter/gui
+Icon=/opt/MsiPowerCenter/icon.png
 Terminal=false
