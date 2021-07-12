@@ -36,3 +36,21 @@ unsigned char read_charging_threshold(){
     close_ec();
     return value;
 }
+
+int set_cooler_boost(int value){
+    open_ec();
+    if(value){
+        set_cooler_boost_on();
+    } else{
+        set_cooler_boost_off();
+    }
+    close_ec();
+    return 0;
+}
+
+int get_cooler_boost(){
+    open_ec();
+    int res = is_cooler_boost_enabled();
+    close_ec();
+    return res;
+}

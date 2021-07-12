@@ -23,6 +23,9 @@ environment:
 dependencies:
   fl_chart: ^0.30.0
   ffi: ^1.0.0
+  path_provider:
+  provider:
+    
   flutter:
     sdk: flutter
 

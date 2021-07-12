@@ -2,15 +2,19 @@ import 'dart:ui';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:myapp/service/lib.dart';
 
 import 'package:myapp/profiles.dart';
-import 'model/ProfileAdapter.dart';
+import 'package:myapp/provider/ProfileProvider.dart';
+import 'package:myapp/widgets/ProfileInfo.dart';
 import 'widgets/FanCurve.dart';
 import 'widgets/ProfileButton.dart';
+import 'package:provider/provider.dart';
 
 void main() {
-  runApp(App());
+  runApp(MultiProvider(
+    providers: [ChangeNotifierProvider(create: (context) => ProfileProvider())],
+    child: App(),
+  ));
 }
 
 class App extends StatelessWidget {
@@ -44,22 +48,7 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  Profile _profile = Profile.Changing;
-  ProfileAdapter _currentProfile = ProfileAdapter.empty();
-  LibManager manager = new LibManager();
   String selection = "cpu";
-
-  _HomePageState() {
-    updateCurrentProfile();
-  }
-
-  void updateCurrentProfile() {
-    manager.getOnSecondaryIsolate().then((value) {
-      setState(() {
-        _currentProfile = value;
-      });
-    });
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -77,30 +66,10 @@ class _HomePageState extends State<HomePage> {
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                ProfileButton(
-                  Profile.Performance,
-                  selected: _profile == Profile.Performance,
-                  afterProfileSet: defaultAfterProfileSet,
-                  whileProfileSet: defaultWhileProfileChanging,
-                ),
-                ProfileButton(
-                  Profile.Balanced,
-                  selected: _profile == Profile.Balanced,
-                  afterProfileSet: defaultAfterProfileSet,
-                  whileProfileSet: defaultWhileProfileChanging,
-                ),
-                ProfileButton(
-                  Profile.Silent,
-                  selected: _profile == Profile.Silent,
-                  afterProfileSet: defaultAfterProfileSet,
-                  whileProfileSet: defaultWhileProfileChanging,
-                ),
-                ProfileButton(
-                  Profile.Battery,
-                  selected: _profile == Profile.Battery,
-                  afterProfileSet: defaultAfterProfileSet,
-                  whileProfileSet: defaultWhileProfileChanging,
-                )
+                ProfileButton(Profile.Performance),
+                ProfileButton(Profile.Balanced),
+                ProfileButton(Profile.Silent),
+                ProfileButton(Profile.Battery)
               ],
             ),
             Spacer(),
@@ -108,74 +77,13 @@ class _HomePageState extends State<HomePage> {
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
                 Expanded(
-                  child: FanCurve(_currentProfile),
+                  child: FanCurve(
+                      context.watch<ProfileProvider>().getCurrentProfile()),
                 ),
                 Expanded(
-                  child: SizedBox(
-                    height: 300,
-                    child: GridView.extent(
-                      maxCrossAxisExtent: 250,
-                      childAspectRatio: 2.5,
-                      shrinkWrap: true,
-                      children: [
-                        Card(
-                          child: ListTile(
-                            title: Text("Cpu Max Frequency"),
-                            subtitle:
-                                Text(_currentProfile.cpuMaxFreq.toString()),
-                          ),
-                        ),
-                        Card(
-                          child: ListTile(
-                            title: Text("Cpu Min Frequency"),
-                            subtitle:
-                                Text(_currentProfile.cpuMinFreq.toString()),
-                          ),
-                        ),
-                        Card(
-                          child: ListTile(
-                            title: Text("Cpu Max Performance"),
-                            subtitle: Text(
-                                _currentProfile.cpuMaxPerf.toString() + "%"),
-                          ),
-                        ),
-                        Card(
-                          child: ListTile(
-                            title: Text("Cpu Min Performance"),
-                            subtitle: Text(
-                                _currentProfile.cpuMinPerf.toString() + "%"),
-                          ),
-                        ),
-                        Card(
-                          child: ListTile(
-                            title: Text("Cpu governor"),
-                            subtitle: Text(_currentProfile.cpuGovernor),
-                          ),
-                        ),
-                        Card(
-                          child: ListTile(
-                            title: Text("Cpu Energy Pref"),
-                            subtitle: Text(_currentProfile.cpuEnergyPref),
-                          ),
-                        ),
-                        Card(
-                          child: ListTile(
-                            title: Text("Cpu turbo"),
-                            subtitle: Text(_currentProfile.cpuTurboEnabled
-                                ? "Enabled"
-                                : "Disabled"),
-                          ),
-                        ),
-                        Card(
-                          child: ListTile(
-                            title: Text("Cooler Boost"),
-                            subtitle: Text(_currentProfile.coolerBoostEnabled
-                                ? "Enabled"
-                                : "Disabled"),
-                          ),
-                        ),
-                      ],
-                    ),
+                  child: ProfileInfo(
+                    profile:
+                        context.watch<ProfileProvider>().getCurrentProfile(),
                   ),
                 )
               ],
@@ -184,18 +92,5 @@ class _HomePageState extends State<HomePage> {
         ),
       ),
     );
-  }
-
-  void defaultWhileProfileChanging() {
-    setState(() {
-      _profile = Profile.Changing;
-    });
-  }
-
-  void defaultAfterProfileSet(Profile profile) {
-    setState(() {
-      _profile = profile;
-      updateCurrentProfile();
-    });
   }
 }

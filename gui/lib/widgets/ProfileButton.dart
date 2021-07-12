@@ -1,32 +1,27 @@
 import 'package:flutter/material.dart';
 import 'package:myapp/profiles.dart';
-import 'package:myapp/service/lib.dart';
+import 'package:myapp/provider/ProfileProvider.dart';
+import 'package:provider/provider.dart';
 
 class ProfileButton extends StatefulWidget {
   final Profile profile;
-  final bool selected;
-  final void Function(Profile profile) afterProfileSet;
-  final void Function() whileProfileSet;
 
-  ProfileButton(this.profile,
-      {this.selected, this.afterProfileSet, this.whileProfileSet});
+  ProfileButton(this.profile);
 
   @override
   _ProfileButtonState createState() => _ProfileButtonState();
 }
 
 class _ProfileButtonState extends State<ProfileButton> {
-  final LibManager manager = LibManager();
   Future<void> setProfileFuture = Future.value();
 
   VoidCallback setProfileCallback(
       BuildContext context, AsyncSnapshot snapshot, Profile profile) {
     if (snapshot.connectionState == ConnectionState.done) {
       return () {
-        widget.whileProfileSet();
-        setProfileFuture = manager.setOnSecondaryIsolate(profile).then((value) {
-          widget.afterProfileSet(profile);
-        }).catchError((e) {
+        ProfileProvider provider = context.read<ProfileProvider>();
+        provider.setProfileSelection(Profile.Changing);
+        setProfileFuture = provider.setProfile(profile).catchError((e) {
           ScaffoldMessenger.of(context)
               .showSnackBar(SnackBar(content: Text("Unable to set profile")));
         });
@@ -47,9 +42,11 @@ class _ProfileButtonState extends State<ProfileButton> {
               children: [
                 Icon(
                   getIconData(widget.profile),
-                  color: widget.selected
-                      ? Theme.of(context).accentColor
-                      : Theme.of(context).unselectedWidgetColor,
+                  color:
+                      context.watch<ProfileProvider>().getProfileSelection() ==
+                              widget.profile
+                          ? Theme.of(context).accentColor
+                          : Theme.of(context).unselectedWidgetColor,
                   size: 120,
                 ),
                 Text(

@@ -7,5 +7,7 @@ int set_profile(const char *path);
 Profile_t *read_current_profile();
 int write_charging_threshold(unsigned char value);
 unsigned char get_charging_threshold();
+int set_cooler_boost(int value);
+int get_cooler_boost();
 
 #endif

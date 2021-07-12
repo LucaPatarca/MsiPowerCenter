@@ -39,7 +39,7 @@ int close_ec(){
 
 int write_ec(int address, unsigned char *values, int count){
     fseek(ec,address,SEEK_SET);
-    fwrite(values,1,count,ec);
+    int res = fwrite(values,1,count,ec);
 }
 
 int apply_ec_profile(Profile_t *profile){
