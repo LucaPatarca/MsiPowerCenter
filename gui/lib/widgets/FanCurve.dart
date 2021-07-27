@@ -1,10 +1,10 @@
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:myapp/model/FanConfig.dart';
-import 'package:myapp/model/ProfileAdapter.dart';
+import 'package:myapp/model/ProfileConfig.dart';
 
 class FanCurve extends StatefulWidget {
-  final ProfileClass profile;
+  final ProfileConfig profile;
 
   FanCurve(this.profile, {Key key}) : super(key: key);
 
@@ -165,11 +165,14 @@ class _FanCurveState extends State<FanCurve> {
 
   List<List<FanConfig>> getData() {
     if (selection == "cpu")
-      return [widget.profile.cpuFanConfig];
+      return [widget.profile.ecConfig.cpuFanConfig];
     else if (selection == "gpu")
-      return [widget.profile.gpuFanConfig];
+      return [widget.profile.ecConfig.gpuFanConfig];
     else
-      return [widget.profile.cpuFanConfig, widget.profile.gpuFanConfig];
+      return [
+        widget.profile.ecConfig.cpuFanConfig,
+        widget.profile.ecConfig.gpuFanConfig
+      ];
   }
 
   String getTitle() {

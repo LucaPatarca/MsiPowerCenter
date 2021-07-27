@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:myapp/model/ProfileAdapter.dart';
+import 'package:myapp/model/ProfileConfig.dart';
 import 'package:myapp/service/ProfileService.dart';
 
-import '../profiles.dart';
+import '../model/profiles.dart';
 
 class ProfileProvider with ChangeNotifier {
-  ProfileClass _profile = ProfileClass.empty();
+  ProfileConfig _profile = ProfileConfig.empty();
   Profile _selection = Profile.Changing;
   ProfileService service = new ProfileService();
 
@@ -22,13 +22,13 @@ class ProfileProvider with ChangeNotifier {
     return _selection;
   }
 
-  Future<ProfileClass> readProfile() async {
+  Future<ProfileConfig> readProfile() async {
     _profile = await service.getProfile();
     notifyListeners();
     return _profile;
   }
 
-  ProfileClass getCurrentProfile() {
+  ProfileConfig getCurrentProfile() {
     return _profile;
   }
 
@@ -39,8 +39,8 @@ class ProfileProvider with ChangeNotifier {
   }
 
   Future<void> toggleCoolerBoost() async {
-    _profile.coolerBoostEnabled =
-        await service.setCoolerBoostEnabled(!_profile.coolerBoostEnabled);
+    _profile.ecConfig.coolerBoostEnabled = await service
+        .setCoolerBoostEnabled(!_profile.ecConfig.coolerBoostEnabled);
     notifyListeners();
   }
 }

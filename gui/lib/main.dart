@@ -3,7 +3,7 @@ import 'dart:ui';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
-import 'package:myapp/profiles.dart';
+import 'package:myapp/model/profiles.dart';
 import 'package:myapp/provider/ProfileProvider.dart';
 import 'package:myapp/widgets/ProfileInfo.dart';
 import 'widgets/FanCurve.dart';

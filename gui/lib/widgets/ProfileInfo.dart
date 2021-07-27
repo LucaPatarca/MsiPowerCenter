@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:myapp/model/ProfileAdapter.dart';
+import 'package:myapp/model/ProfileConfig.dart';
 import 'package:myapp/provider/ProfileProvider.dart';
 import 'package:provider/provider.dart';
 
 class ProfileInfo extends StatelessWidget {
-  final ProfileClass profile;
+  final ProfileConfig profile;
   const ProfileInfo({Key key, this.profile}) : super(key: key);
 
   @override
@@ -19,43 +19,44 @@ class ProfileInfo extends StatelessWidget {
           Card(
             child: ListTile(
               title: Text("Cpu Max Frequency"),
-              subtitle: Text(profile.cpuMaxFreq.toString()),
+              subtitle: Text(profile.cpuConfig.cpuMaxFreq.toString()),
             ),
           ),
           Card(
             child: ListTile(
               title: Text("Cpu Min Frequency"),
-              subtitle: Text(profile.cpuMinFreq.toString()),
+              subtitle: Text(profile.cpuConfig.cpuMinFreq.toString()),
             ),
           ),
           Card(
             child: ListTile(
               title: Text("Cpu Max Performance"),
-              subtitle: Text(profile.cpuMaxPerf.toString() + "%"),
+              subtitle: Text(profile.cpuConfig.cpuMaxPerf.toString() + "%"),
             ),
           ),
           Card(
             child: ListTile(
               title: Text("Cpu Min Performance"),
-              subtitle: Text(profile.cpuMinPerf.toString() + "%"),
+              subtitle: Text(profile.cpuConfig.cpuMinPerf.toString() + "%"),
             ),
           ),
           Card(
             child: ListTile(
-              title: Text("Cpu governor"),
-              subtitle: Text(profile.cpuGovernor),
+              title: Text("Cpu Governor"),
+              subtitle: Text(profile.cpuConfig.cpuGovernor),
             ),
           ),
           Card(
             child: ListTile(
               title: Text("Cpu Energy Pref"),
-              subtitle: Text(profile.cpuEnergyPref),
+              subtitle: Text(profile.cpuConfig.cpuEnergyPref),
             ),
           ),
           Card(
             child: ListTile(
-              title: Text("Cpu turbo"),
-              subtitle: Text(profile.cpuTurboEnabled ? "Enabled" : "Disabled"),
+              title: Text("Cpu Turbo"),
+              subtitle: Text(
+                  profile.cpuConfig.cpuTurboEnabled ? "Enabled" : "Disabled"),
             ),
           ),
           Card(
@@ -64,10 +65,22 @@ class ProfileInfo extends StatelessWidget {
               subtitle: Text(context
                       .watch<ProfileProvider>()
                       .getCurrentProfile()
+                      .ecConfig
                       .coolerBoostEnabled
                   ? "Enabled"
                   : "Disabled"),
-              onTap: () => context.watch<ProfileProvider>().toggleCoolerBoost(),
+              onTap: () => context.read<ProfileProvider>().toggleCoolerBoost(),
+            ),
+          ),
+          Card(
+            child: ListTile(
+              title: Text("Charging Limit"),
+              subtitle: Text(context
+                  .watch<ProfileProvider>()
+                  .getCurrentProfile()
+                  .ecConfig
+                  .chargingThreshold
+                  .toString()),
             ),
           ),
         ],

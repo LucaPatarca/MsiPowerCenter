@@ -1,26 +1,32 @@
-import 'package:myapp/controller/ec.dart';
-import 'package:myapp/controller/lib.dart';
-import 'package:myapp/controller/profile.dart';
-import 'package:myapp/model/ProfileAdapter.dart';
+import 'dart:io';
 
-import '../profiles.dart';
+import 'package:ini/ini.dart';
+import 'package:myapp/controller/cpu.dart';
+import 'package:myapp/controller/ec.dart';
+import 'package:myapp/model/ProfileConfig.dart';
+
+import '../model/profiles.dart';
 
 class ProfileService {
-  LibController controller = new LibController();
   final ecController = new EcController();
+  final cpuController = new CpuController();
 
-  Future<ProfileClass> setProfile(Profile profile) async {
-    var profileClass = ProfileController().readProfile(profile);
-    await ecController.applyProfile(profileClass);
-    return await controller.getProfile();
+  ProfileConfig setProfile(Profile profile) {
+    Config config = Config.fromStrings(File(profile.path).readAsLinesSync());
+    var profileConfig = ProfileConfig.fromConfig(config);
+    ecController.applyConfig(profileConfig.ecConfig);
+    cpuController.applyConfig(profileConfig.cpuConfig);
+    return getProfile();
   }
 
-  Future<ProfileClass> getProfile() async {
-    return await controller.getProfile();
+  ProfileConfig getProfile() {
+    var ecConfig = ecController.readConfig();
+    var cpuConfig = cpuController.readConfig();
+    return ProfileConfig(cpuConfig, ecConfig);
   }
 
-  Future<bool> setCoolerBoostEnabled(bool value) async {
-    await controller.setCoolerBoost(value);
-    return await controller.getCoolerBoost();
+  bool setCoolerBoostEnabled(bool value) {
+    ecController.setCoolerBoost(value);
+    return ecController.isCoolerBoostEnabled();
   }
 }
