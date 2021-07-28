@@ -2,25 +2,23 @@
 #include <stdlib.h>
 #include <string.h>
 #include <errno.h>
+#include <fcntl.h>
 #include <dirent.h>
+#include <unistd.h>
 #include "cpupower.h"
 #include "util.h"
 
 #ifndef NDEBUG
-#define CPUFREQ_PATH                    "/home/luca/Scrivania/PowerCenter/mockFiles/cpufreq/"
-#define SCALING_MAX_FREQ                "/scaling_max_freq"
-#define SCALING_MIN_FREQ                "/scaling_min_freq"
-#define SCALING_GOVERNOR                "/scaling_governor"
-#define CPUINFO_MAX_FREQ                "/cpuinfo_max_freq"
-#define CPUINFO_MIN_FREQ                "/cpuinfo_min_freq"
-#define SCALING_AVAILABLE_GOVERNORS     "/scaling_available_governors"
-#define ENERGY_PREF                     "/energy_performance_preference"
-#define ENERGY_AVAILABLE_PREFS          "/energy_performance_available_preferences"
-#define PSTATE_MAX_PERF                 "/home/luca/Scrivania/PowerCenter/mockFiles/intel_pstate/max_perf_pct"
-#define PSTATE_MIN_PERF                 "/home/luca/Scrivania/PowerCenter/mockFiles/intel_pstate/min_perf_pct"
-#define PSTATE_NO_TURBO                 "/home/luca/Scrivania/PowerCenter/mockFiles/intel_pstate/no_turbo"
+#define CPUFREQ_PATH                    "/home/luca/MsiPowerCenter/mockFiles/cpufreq/"
+#define PSTATE_MAX_PERF                 "/home/luca/MsiPowerCenter/mockFiles/intel_pstate/max_perf_pct"
+#define PSTATE_MIN_PERF                 "/home/luca/MsiPowerCenter/mockFiles/intel_pstate/min_perf_pct"
+#define PSTATE_NO_TURBO                 "/home/luca/MsiPowerCenter/mockFiles/intel_pstate/no_turbo"
 #else
 #define CPUFREQ_PATH                    "/sys/devices/system/cpu/"
+#define PSTATE_MAX_PERF                 "/sys/devices/system/cpu/intel_pstate/max_perf_pct"
+#define PSTATE_MIN_PERF                 "/sys/devices/system/cpu/intel_pstate/min_perf_pct"
+#define PSTATE_NO_TURBO                 "/sys/devices/system/cpu/intel_pstate/no_turbo"
+#endif
 #define SCALING_MAX_FREQ                "/cpufreq/scaling_max_freq"
 #define SCALING_MIN_FREQ                "/cpufreq/scaling_min_freq"
 #define SCALING_GOVERNOR                "/cpufreq/scaling_governor"
@@ -29,10 +27,6 @@
 #define SCALING_AVAILABLE_GOVERNORS     "/cpufreq/scaling_available_governors"
 #define ENERGY_PREF                     "/cpufreq/energy_performance_preference"
 #define ENERGY_AVAILABLE_PREFS          "/cpufreq/energy_performance_available_preferences"
-#define PSTATE_MAX_PERF                 "/sys/devices/system/cpu/intel_pstate/max_perf_pct"
-#define PSTATE_MIN_PERF                 "/sys/devices/system/cpu/intel_pstate/min_perf_pct"
-#define PSTATE_NO_TURBO                 "/sys/devices/system/cpu/intel_pstate/no_turbo"
-#endif
 
 int max_freq = -1;
 int min_freq = -1;
@@ -46,8 +40,13 @@ void get_cpu_count(){
     DIR * dir = opendir(CPUFREQ_PATH);
     struct dirent * entry;
     while((entry = readdir(dir)) != NULL){
-        if(strcmp(entry->d_name, ".") != 0 && strcmp(entry->d_name, "..")){
-            cpu_count++;
+        if(entry->d_name[0] == 'c'
+            && entry->d_name[1] == 'p'
+            && entry->d_name[2] == 'u'){
+            char number = entry->d_name[3];
+            int this = parse_int(&number)+1;
+            if(this>cpu_count)
+                cpu_count = this;
         }
     }
 }
@@ -56,7 +55,11 @@ int cpus_read_int(const char *filename){
     char filepath[256];
     sprintf(filepath, "%scpu0%s", CPUFREQ_PATH, filename);
     FILE *file = fopen(filepath,"r");
+    if(!file){
+        return -1;
+    }
     char str[256];
+    memset(str,0,256);
     if(fread(str,256,1,file)<0){
         fclose(file);
         return -1;
@@ -67,14 +70,19 @@ int cpus_read_int(const char *filename){
 }
 
 int read_int(const char *filepath){
-    FILE *file = fopen(filepath,"r");
+    int fd = open(filepath, O_RDONLY);
+    if(fd == -1){
+        return -1;
+    }
     char str[256];
-    if(fread(str,256,1,file)<0){
-        fclose(file);
+    memset(str,0,256);
+    if(read(fd, str, 256)<=0){
+        perror("read int");
+        close(fd);
         return -1;
     }
     int result = parse_int(str);
-    fclose(file);
+    close(fd);
     return result;
 }
 
@@ -96,6 +104,9 @@ char *read_string(const char *filename){
     char filepath[256];
     sprintf(filepath, "%scpu0%s", CPUFREQ_PATH, filename);
     FILE *file = fopen(filepath,"r");
+    if(!file){
+        return NULL;
+    }
     char *str = malloc(256);
     memset(str,0,256);
     if(fread(str,256,1,file)<0){
@@ -290,12 +301,18 @@ int get_turbo_enabled(){
 
 char *get_scaling_governor(){
     char *governor = read_string(SCALING_GOVERNOR);
+    if(!governor){
+        return NULL;
+    }
     remove_newline_if_present(governor);
     return governor;
 }
 
 char *get_energy_pref(){
     char *pref = read_string(ENERGY_PREF);
+    if(!pref){
+        return NULL;
+    }
     remove_newline_if_present(pref);
     return pref;
 }

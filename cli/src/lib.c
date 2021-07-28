@@ -32,7 +32,7 @@ int write_charging_threshold(unsigned char value){
 
 unsigned char read_charging_threshold(){
     open_ec();
-    unsigned char value = get_charging_threshold();
+    int value = get_charging_threshold();
     close_ec();
     return value;
 }

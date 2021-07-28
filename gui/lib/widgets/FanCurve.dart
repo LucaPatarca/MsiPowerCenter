@@ -165,14 +165,11 @@ class _FanCurveState extends State<FanCurve> {
 
   List<List<FanConfig>> getData() {
     if (selection == "cpu")
-      return [widget.profile.ecConfig.cpuFanConfig];
+      return [widget.profile.ec.cpuFanConfig];
     else if (selection == "gpu")
-      return [widget.profile.ecConfig.gpuFanConfig];
+      return [widget.profile.ec.gpuFanConfig];
     else
-      return [
-        widget.profile.ecConfig.cpuFanConfig,
-        widget.profile.ecConfig.gpuFanConfig
-      ];
+      return [widget.profile.ec.cpuFanConfig, widget.profile.ec.gpuFanConfig];
   }
 
   String getTitle() {

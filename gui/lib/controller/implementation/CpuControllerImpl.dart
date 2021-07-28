@@ -1,9 +1,10 @@
 import 'dart:io';
 
 import 'package:flutter/foundation.dart';
+import 'package:myapp/controller/interface/CpuController.dart';
 import 'package:myapp/model/CpuConfig.dart';
 
-class CpuController {
+class CpuControllerImpl implements CpuController {
   final CPUFREQ_PATH = kDebugMode == true
       ? "/home/luca/MsiPowerCenter/mockFiles/cpufreq"
       : "/sys/devices/system/cpu/";
@@ -24,25 +25,25 @@ class CpuController {
   final PSTATE_NO_TURBO = "//no_turbo";
 
   void applyConfig(CpuConfig config) {
-    _writeStringForCpus(SCALING_MAX_FREQ, config.cpuMaxFreq.toString());
-    _writeStringForCpus(SCALING_MIN_FREQ, config.cpuMinFreq.toString());
+    _writeStringForCpus(SCALING_MAX_FREQ, config.maxFreq.toString());
+    _writeStringForCpus(SCALING_MIN_FREQ, config.minFreq.toString());
     //TODO controllare che il governor e energypref siano disponibili
-    _writeStringForCpus(SCALING_GOVERNOR, config.cpuGovernor.toString());
-    _writeStringForCpus(ENERGY_PREF, config.cpuEnergyPref.toString());
-    _writeInt(PSTATE_PATH + PSTATE_MAX_PERF, config.cpuMaxPerf);
-    _writeInt(PSTATE_PATH + PSTATE_MIN_PERF, config.cpuMinPerf);
-    _writeInt(PSTATE_PATH + PSTATE_NO_TURBO, config.cpuTurboEnabled ? 0 : 1);
+    _writeStringForCpus(SCALING_GOVERNOR, config.governor.toString());
+    _writeStringForCpus(ENERGY_PREF, config.energyPref.toString());
+    _writeInt(PSTATE_PATH + PSTATE_MAX_PERF, config.maxPerf);
+    _writeInt(PSTATE_PATH + PSTATE_MIN_PERF, config.minPerf);
+    _writeInt(PSTATE_PATH + PSTATE_NO_TURBO, config.turboEnabled ? 0 : 1);
   }
 
   CpuConfig readConfig() {
     var config = CpuConfig.empty();
-    config.cpuMaxFreq = _readInt(CPUFREQ_PATH + "/cpu0" + SCALING_MAX_FREQ);
-    config.cpuMinFreq = _readInt(CPUFREQ_PATH + "/cpu0" + SCALING_MIN_FREQ);
-    config.cpuMaxPerf = _readInt(PSTATE_PATH + PSTATE_MAX_PERF);
-    config.cpuMinPerf = _readInt(PSTATE_PATH + PSTATE_MIN_PERF);
-    config.cpuTurboEnabled = _readInt(PSTATE_PATH + PSTATE_NO_TURBO) == 0;
-    config.cpuGovernor = _readString(CPUFREQ_PATH + "/cpu0" + SCALING_GOVERNOR);
-    config.cpuEnergyPref = _readString(CPUFREQ_PATH + "/cpu0" + ENERGY_PREF);
+    config.maxFreq = _readInt(CPUFREQ_PATH + "/cpu0" + SCALING_MAX_FREQ);
+    config.minFreq = _readInt(CPUFREQ_PATH + "/cpu0" + SCALING_MIN_FREQ);
+    config.maxPerf = _readInt(PSTATE_PATH + PSTATE_MAX_PERF);
+    config.minPerf = _readInt(PSTATE_PATH + PSTATE_MIN_PERF);
+    config.turboEnabled = _readInt(PSTATE_PATH + PSTATE_NO_TURBO) == 0;
+    config.governor = _readString(CPUFREQ_PATH + "/cpu0" + SCALING_GOVERNOR);
+    config.energyPref = _readString(CPUFREQ_PATH + "/cpu0" + ENERGY_PREF);
     return config;
   }
 

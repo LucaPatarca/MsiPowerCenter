@@ -4,24 +4,30 @@ import 'package:myapp/model/EcConfig.dart';
 
 class ProfileConfig {
   String name = "";
-  CpuConfig cpuConfig = CpuConfig.empty();
-  EcConfig ecConfig = EcConfig.empty();
+  CpuConfig cpu = CpuConfig.empty();
+  EcConfig ec = EcConfig.empty();
 
   ProfileConfig(CpuConfig cpuConfig, EcConfig ecConfig) {
     this.name = "Unknown";
-    this.cpuConfig = cpuConfig;
-    this.ecConfig = ecConfig;
+    this.cpu = cpuConfig;
+    this.ec = ecConfig;
+  }
+
+  ProfileConfig.fromJson(Map<String, dynamic> json) {
+    this.name = "Current";
+    this.cpu = CpuConfig.fromJson(json);
+    this.ec = EcConfig.fromJson(json);
   }
 
   ProfileConfig.fromConfig(Config config) {
     this.name = config.get("General", "Name");
-    this.cpuConfig = CpuConfig.fromConfig(config);
-    this.ecConfig = EcConfig.fromConfig(config);
+    this.cpu = CpuConfig.fromConfig(config);
+    this.ec = EcConfig.fromConfig(config);
   }
 
   ProfileConfig.empty() {
     name = "empty";
-    cpuConfig = CpuConfig.empty();
-    ecConfig = EcConfig.empty();
+    cpu = CpuConfig.empty();
+    ec = EcConfig.empty();
   }
 }

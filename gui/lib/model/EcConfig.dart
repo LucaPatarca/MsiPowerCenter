@@ -37,6 +37,18 @@ class EcConfig {
         config.get("Fan", "CoolerBoost").toLowerCase() == "true";
   }
 
+  EcConfig.fromJson(Map<String, dynamic> json) {
+    var jsonCpuList = json["cpuFanConfig"] as List<dynamic>;
+    this.cpuFanConfig =
+        jsonCpuList.map((e) => FanConfig(e["temp"], e["speed"])).toList();
+    var jsonGpuList = json["gpuFanConfig"] as List<dynamic>;
+    this.gpuFanConfig =
+        jsonGpuList.map((e) => FanConfig(e["temp"], e["speed"])).toList();
+    this.coolerBoostEnabled = json["coolerBoost"];
+    //TODO sistemare
+    this.chargingThreshold = 0;
+  }
+
   EcConfig.empty() {
     cpuFanConfig = List.from(_emptyFanList);
     gpuFanConfig = List.from(_emptyFanList);

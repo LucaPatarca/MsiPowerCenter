@@ -19,44 +19,43 @@ class ProfileInfo extends StatelessWidget {
           Card(
             child: ListTile(
               title: Text("Cpu Max Frequency"),
-              subtitle: Text(profile.cpuConfig.cpuMaxFreq.toString()),
+              subtitle: Text(profile.cpu.maxFreq.toString()),
             ),
           ),
           Card(
             child: ListTile(
               title: Text("Cpu Min Frequency"),
-              subtitle: Text(profile.cpuConfig.cpuMinFreq.toString()),
+              subtitle: Text(profile.cpu.minFreq.toString()),
             ),
           ),
           Card(
             child: ListTile(
               title: Text("Cpu Max Performance"),
-              subtitle: Text(profile.cpuConfig.cpuMaxPerf.toString() + "%"),
+              subtitle: Text(profile.cpu.maxPerf.toString() + "%"),
             ),
           ),
           Card(
             child: ListTile(
               title: Text("Cpu Min Performance"),
-              subtitle: Text(profile.cpuConfig.cpuMinPerf.toString() + "%"),
+              subtitle: Text(profile.cpu.minPerf.toString() + "%"),
             ),
           ),
           Card(
             child: ListTile(
               title: Text("Cpu Governor"),
-              subtitle: Text(profile.cpuConfig.cpuGovernor),
+              subtitle: Text(profile.cpu.governor),
             ),
           ),
           Card(
             child: ListTile(
               title: Text("Cpu Energy Pref"),
-              subtitle: Text(profile.cpuConfig.cpuEnergyPref),
+              subtitle: Text(profile.cpu.energyPref),
             ),
           ),
           Card(
             child: ListTile(
               title: Text("Cpu Turbo"),
-              subtitle: Text(
-                  profile.cpuConfig.cpuTurboEnabled ? "Enabled" : "Disabled"),
+              subtitle: Text(profile.cpu.turboEnabled ? "Enabled" : "Disabled"),
             ),
           ),
           Card(
@@ -65,7 +64,7 @@ class ProfileInfo extends StatelessWidget {
               subtitle: Text(context
                       .watch<ProfileProvider>()
                       .getCurrentProfile()
-                      .ecConfig
+                      .ec
                       .coolerBoostEnabled
                   ? "Enabled"
                   : "Disabled"),
@@ -78,7 +77,7 @@ class ProfileInfo extends StatelessWidget {
               subtitle: Text(context
                   .watch<ProfileProvider>()
                   .getCurrentProfile()
-                  .ecConfig
+                  .ec
                   .chargingThreshold
                   .toString()),
             ),

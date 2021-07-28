@@ -3,7 +3,7 @@
 #include "ec.h"
 #include "profile.h"
 #ifndef NDEBUG
-#define EC_PATH "/home/luca/Scrivania/PowerCenter/mockFiles/io"
+#define EC_PATH "/home/luca/MsiPowerCenter/mockFiles/io"
 #else
 #define EC_PATH "/sys/kernel/debug/ec/ec0/io"
 #endif
@@ -34,7 +34,9 @@ int open_ec(){
 }
 
 int close_ec(){
-    fclose(ec);
+    if(ec){
+        fclose(ec);
+    }
 }
 
 int write_ec(int address, unsigned char *values, int count){
@@ -89,7 +91,10 @@ int set_charging_threshold(unsigned char threshold){
     return 0;
 }
 
-unsigned char read_ec_value(int address){
+int read_ec_value(int address){
+    if(!ec){
+        return -1;
+    }
     if(fseek(ec,address,SEEK_SET)!=0){
         perror("seek error");
         return -1;
@@ -105,7 +110,11 @@ unsigned char read_ec_value(int address){
 unsigned char *read_ec_value_array(int start, int end){
     unsigned char *array = malloc((end-start+1)*sizeof(unsigned char));
     for(int i=start;i<=end;i++){
-        array[i-start] = read_ec_value(i);
+        int result = read_ec_value(i);
+        if(result == -1){
+            return NULL;
+        }
+        array[i-start] = result;
     }
     return array;
 }
@@ -126,16 +135,19 @@ unsigned char *get_gpu_fan_speeds(){
     return read_ec_value_array(GPU_FAN_START, GPU_FAN_END);
 }
 
-unsigned char is_cooler_boost_enabled(){
+int is_cooler_boost_enabled(){
     return read_ec_value(COOLER_BOOST_ADDR)>=COOLER_BOOST_ON;
 }
 
-unsigned char get_charging_threshold(){
+int get_charging_threshold(){
     return read_ec_value(CHARGING_THRESHOLD_ADDR)-0x80;
 }
 
 int read_ec_profile(Profile_t *profile){
     open_ec();
+    if(!ec){
+        return -1;
+    }
     profile->cpu_temps = get_cpu_temps();
     profile->gpu_temps = get_gpu_temps();
     profile->cpu_speeds = get_cpu_fan_speeds();

@@ -1,25 +1,26 @@
 import 'dart:io';
 import 'package:flutter/foundation.dart';
+import 'package:myapp/controller/interface/EcController.dart';
 import 'package:myapp/model/FanConfig.dart';
 import 'package:myapp/model/EcConfig.dart';
 
-class EcController {
-  final EC_PATH = kDebugMode == true
+class EcControllerImpl implements EcController {
+  static const EC_PATH = kDebugMode == true
       ? "/home/luca/MsiPowerCenter/mockFiles/io"
       : "/sys/kernel/debug/ec/ec0/io";
-  final CPU_TEMP_START = 0x6A;
-  final GPU_TEMP_START = 0x82;
-  final REALTIME_CPU_TEMP = 0x68;
-  final REALTIME_GPU_TEMP = 0x80;
-  final CPU_FAN_START = 0x72;
-  final GPU_FAN_START = 0x8A;
-  final REALTIME_CPU_FAN_SPEED = 0x71;
-  final REALTIME_GPU_FAN_SPEED = 0x89;
-  final COOLER_BOOST_ADDR = 0x98;
-  final CHARGING_THRESHOLD_ADDR = 0xEF;
-  final FAN_MODE_ADDR = 0xF4;
-  final COOLER_BOOST_ON = 0x80;
-  final COOLER_BOOST_OFF = 0x00;
+  static const CPU_TEMP_START = 0x6A;
+  static const GPU_TEMP_START = 0x82;
+  static const REALTIME_CPU_TEMP = 0x68;
+  static const REALTIME_GPU_TEMP = 0x80;
+  static const CPU_FAN_START = 0x72;
+  static const GPU_FAN_START = 0x8A;
+  static const REALTIME_CPU_FAN_SPEED = 0x71;
+  static const REALTIME_GPU_FAN_SPEED = 0x89;
+  static const COOLER_BOOST_ADDR = 0x98;
+  static const CHARGING_THRESHOLD_ADDR = 0xEF;
+  static const FAN_MODE_ADDR = 0xF4;
+  static const COOLER_BOOST_ON = 0x80;
+  static const COOLER_BOOST_OFF = 0x00;
 
   void applyConfig(EcConfig profile) {
     var ec = File(EC_PATH).openSync(mode: FileMode.write);
@@ -84,14 +85,14 @@ class EcController {
     return result;
   }
 
-  void setChargingThreshold(int value) {
+  void setChargingLimit(int value) {
     var ec = File(EC_PATH).openSync(mode: FileMode.append);
     ec.setPositionSync(CHARGING_THRESHOLD_ADDR);
     ec.writeByteSync(value + 0x80);
     ec.closeSync();
   }
 
-  int getChargingThreshold() {
+  int getChargingLimit() {
     var ec = File(EC_PATH).openSync(mode: FileMode.read);
     ec.setPositionSync(CHARGING_THRESHOLD_ADDR);
     var result = ec.readByteSync() - 0x80;

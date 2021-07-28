@@ -31,9 +31,9 @@ unsigned char *get_cpu_fan_speeds();
 
 unsigned char *get_gpu_fan_speeds();
 
-unsigned char is_cooler_boost_enabled();
+int is_cooler_boost_enabled();
 
-unsigned char get_charging_threshold();
+int get_charging_threshold();
 
 int read_ec_profile(Profile_t *profile);
 
