@@ -17,8 +17,8 @@ const CHARGING_LIMIT = 8;
 const PROFILE = 9;
 
 class ProfileServiceDaemon implements ProfileService {
-  final input = File("../cli/build/input");
-  final output = File("../cli/build/output");
+  final input = File("/opt/MsiPowerCenter/pipes/input");
+  final output = File("/opt/MsiPowerCenter/pipes/output");
 
   @override
   Future<void> applyProfile(Profile profile) async {
@@ -42,15 +42,21 @@ class ProfileServiceDaemon implements ProfileService {
   }
 
   @override
-  Future<bool> isCoolerBoostEnabled() {
-    // TODO: implement isCoolerBoostEnabled
-    throw UnimplementedError();
+  Future<bool> isCoolerBoostEnabled() async {
+    writeInput(GET);
+    writeInput(COOLER_BOOST);
+    String jsonString = await readOutput();
+    var json = jsonDecode(jsonString);
+    return json["coolerBoost"];
   }
 
   @override
-  Future<int> readChargingLimit() {
-    // TODO: implement readChargingLimit
-    throw UnimplementedError();
+  Future<int> readChargingLimit() async {
+    writeInput(GET);
+    writeInput(CHARGING_LIMIT);
+    String jsonString = await readOutput();
+    var json = jsonDecode(jsonString);
+    return json["chargingLimit"];
   }
 
   @override
@@ -69,9 +75,10 @@ class ProfileServiceDaemon implements ProfileService {
   }
 
   @override
-  Future<void> setCoolerBoostEnabled(bool value) {
-    // TODO: implement setCoolerBoostEnabled
-    throw UnimplementedError();
+  Future<void> setCoolerBoostEnabled(bool value) async {
+    writeInput(SET);
+    writeInput(COOLER_BOOST);
+    writeInput(value ? 1 : 0);
   }
 
   void writeInput(int value) {

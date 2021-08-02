@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:ini/ini.dart';
 
 class CpuConfig {
@@ -38,5 +40,23 @@ class CpuConfig {
     maxPerf = 0;
     minPerf = 0;
     turboEnabled = false;
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return other is CpuConfig &&
+        this.maxFreq == other.maxFreq &&
+        this.minFreq == other.minFreq &&
+        this.governor == other.governor &&
+        this.energyPref == other.energyPref &&
+        this.maxPerf == other.maxPerf &&
+        this.minPerf == other.minPerf &&
+        this.turboEnabled == other.turboEnabled;
+  }
+
+  @override
+  int get hashCode {
+    return hashValues(
+        maxFreq, minFreq, governor, energyPref, maxPerf, minPerf, turboEnabled);
   }
 }

@@ -1,6 +1,9 @@
+import 'dart:ui';
+
 import 'package:ini/ini.dart';
 
 import 'FanConfig.dart';
+import 'package:collection/collection.dart';
 
 class EcConfig {
   final _emptyFanList = [
@@ -54,5 +57,19 @@ class EcConfig {
     gpuFanConfig = List.from(_emptyFanList);
     coolerBoostEnabled = false;
     chargingThreshold = 0;
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return other is EcConfig &&
+        ListEquality().equals(this.cpuFanConfig, other.cpuFanConfig) &&
+        ListEquality().equals(this.gpuFanConfig, other.gpuFanConfig) &&
+        this.coolerBoostEnabled == other.coolerBoostEnabled;
+  }
+
+  @override
+  int get hashCode {
+    return hashValues(
+        hashList(cpuFanConfig), hashList(gpuFanConfig), coolerBoostEnabled);
   }
 }

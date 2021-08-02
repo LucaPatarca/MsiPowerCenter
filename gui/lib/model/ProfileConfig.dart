@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:ini/ini.dart';
 import 'package:myapp/model/CpuConfig.dart';
 import 'package:myapp/model/EcConfig.dart';
@@ -30,4 +31,14 @@ class ProfileConfig {
     cpu = CpuConfig.empty();
     ec = EcConfig.empty();
   }
+
+  @override
+  bool operator ==(Object other) {
+    return other is ProfileConfig &&
+        this.cpu == other.cpu &&
+        this.ec == other.ec;
+  }
+
+  @override
+  int get hashCode => hashValues(ec, cpu);
 }

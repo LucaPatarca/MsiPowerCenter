@@ -4,11 +4,12 @@
 #include <errno.h>
 #include <unistd.h>
 #include <fcntl.h>
+#include <sys/stat.h>
 #include "profile.h"
 #include "ec.h"
 #include "cpupower.h"
 
-#define QUIT 0
+#define QUIT 'q'
 #define GET 1
 #define SET 2
 #define PERFORMANCE 3
@@ -85,12 +86,19 @@ int get(int next){
 			print_current_profile_json();
 			break;
 		case CHARGING_LIMIT:
+			open_ec();
 			int charging_limit = get_charging_threshold();
-			printf("charging limit: %d", charging_limit);
+			close_ec();
+			char str[256];
+			sprintf(str,"{\"chargingLimit\": %d}", charging_limit);
+			write(fdOutput,str,strlen(str));
 			break;
 		case COOLER_BOOST:
-			unsigned char cooler_boost = is_cooler_boost_enabled();
-			printf("cooler boost: %d", cooler_boost);
+			open_ec();
+			int cooler_boost = is_cooler_boost_enabled();
+			close_ec();
+			sprintf(str,"{\"coolerBoost\": %s}", cooler_boost==0?"false":"true");
+			write(fdOutput,str,strlen(str));
 			break;
 		
 		default:
@@ -141,12 +149,14 @@ void set(int next){
 }
 
 int main(int argc, char **argv){
-    const char* inputPipe = "./input";
+    const char* inputPipe = "/opt/MsiPowerCenter/pipes/input";
 	mkfifo(inputPipe, 0666);
-	const char* outputPipe = "./output";
+	const char* outputPipe = "/opt/MsiPowerCenter/pipes/output";
 	mkfifo(outputPipe, 0666);
 	fdOutput = open(outputPipe, O_CREAT | O_RDWR);
 	fdInput = open(inputPipe, O_CREAT | O_RDWR);
+	fchmod(fdInput, 0666);
+	fchmod(fdOutput, 0666);
 	int exec = true;
 	
 	while(exec){
