@@ -10,7 +10,13 @@ pub struct Profile{
 
 #[derive(Serialize,Deserialize)]
 pub struct CpuConfig{
-    pub scaling_max_freq: i32,
+    pub max_freq: i32,
+    pub min_freq: i32,
+    pub max_perf: i32,
+    pub min_perf: i32,
+    pub governor: String,
+    pub energy_pref: String,
+    pub turbo: bool
 }
 
 #[derive(Serialize,Deserialize)]
