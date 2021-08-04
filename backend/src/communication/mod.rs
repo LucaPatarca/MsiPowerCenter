@@ -30,7 +30,7 @@ pub struct CommunicationService{
 }
 
 impl CommunicationService{
-    #[cfg(not(test))]
+
     pub fn new() -> Self{
         match create_pipes(String::from(INPUT_PATH), String::from(OUTPUT_PATH)) {
             Ok(()) => CommunicationService{input_path: String::from(INPUT_PATH), output_path: String::from(OUTPUT_PATH)},
@@ -39,7 +39,7 @@ impl CommunicationService{
     }
 
     #[cfg(test)]
-    pub fn new(number: i32) -> Self{
+    pub fn new_for_test(number: i32) -> Self{
         let input = String::from(&format!("{}{}", INPUT_PATH, number));
         let output = String::from(&format!("{}{}", OUTPUT_PATH, number));
         match create_pipes(input.to_owned(), output.to_owned()) {
@@ -94,7 +94,7 @@ mod tests{
         let input_path;
         let output_path;
         {
-            let service = CommunicationService::new(1);
+            let service = CommunicationService::new_for_test(1);
             input_path = service.input_path.to_owned();
             output_path = service.output_path.to_owned();
             metadata(input_path.to_owned()).map_err(|e| format!("Input not created {}", e))?;
@@ -112,7 +112,7 @@ mod tests{
     }
 
     fn can_receive_input(s: &'static str, command: Command, number: i32) -> Result<(),String>{
-        let service = CommunicationService::new(number);
+        let service = CommunicationService::new_for_test(number);
         let input_path = service.input_path.to_owned();
         let child = thread::spawn(move ||{
             write_on_pipe(input_path, String::from(s))
@@ -140,7 +140,7 @@ mod tests{
     #[test]
     fn can_write_output() -> Result<(), String>{
         let test = "abcefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890";
-        let service = CommunicationService::new(11);
+        let service = CommunicationService::new_for_test(11);
         let output = service.output_path.clone();
         let child = thread::spawn(move ||{
             read_from_pipe(output)

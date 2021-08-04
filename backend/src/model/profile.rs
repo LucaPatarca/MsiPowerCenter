@@ -8,7 +8,7 @@ pub struct Profile{
     pub ec : EcConfig
 }
 
-#[derive(Serialize,Deserialize)]
+#[derive(Serialize,Deserialize, Clone)]
 pub struct CpuConfig{
     pub max_freq: i32,
     pub min_freq: i32,
@@ -19,7 +19,15 @@ pub struct CpuConfig{
     pub turbo: bool
 }
 
-#[derive(Serialize,Deserialize)]
+#[derive(Serialize,Deserialize, PartialEq, Debug, Clone)]
 pub struct EcConfig{
-    pub name : String,
+    pub cpu_fan_config : Vec<FanConfig>,
+    pub gpu_fan_config : Vec<FanConfig>,
+    pub cooler_boost: bool
+}
+
+#[derive(Serialize,Deserialize, PartialEq, Debug, Clone)]
+pub struct FanConfig{
+    pub speed: u8,
+    pub temp: u8
 }
