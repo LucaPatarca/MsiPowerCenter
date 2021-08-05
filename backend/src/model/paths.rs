@@ -59,9 +59,7 @@ impl Paths {
     }
 
     pub fn new_auto() -> Self{
-        if cfg!(test) {
-            Self::new_test()
-        }else if cfg!(debug_assertions){
+        if cfg!(debug_assertions){
             Self::new_debug()
         }else {
             Self::new_release()

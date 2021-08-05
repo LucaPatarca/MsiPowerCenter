@@ -1,6 +1,6 @@
 use std::{io, path::{Path, PathBuf}};
 
-use crate::{controller::file_utils::write_ec, model::profile::{EcConfig, FanConfig}};
+use crate::{hwconfig::file_utils::write_ec, model::profile::{EcConfig, FanConfig}};
 
 use super::file_utils::read_ec;
 
@@ -25,9 +25,7 @@ pub struct EcController{
 impl EcController{
     pub fn new() -> Self{
         let path;
-        if cfg!(test) {
-            path = Path::new("test_files/io");
-        } else if cfg!(debug_assertions){
+        if cfg!(debug_assertions){
             path = Path::new("../mockFiles/io");
         } else {
             path = Path::new("/sys/kernel/debug/ec/ec0/io");
@@ -104,12 +102,13 @@ mod tests{
     #[test]
     fn can_initialize_correctly(){
         let controller = EcController::new();
-        assert_eq!(controller.path.as_path().to_string_lossy().to_string(), "test_files/io");
+        assert_eq!(controller.path.as_path().to_string_lossy().to_string(), "../mockFiles/io");
     }
 
     #[test]
     fn can_read_config() -> Result<(), Error>{
-        let controller = EcController::new();
+        let mut controller = EcController::new();
+        controller.path = Path::new("test_files/io").to_path_buf();
         let config = controller.read_config()?;
         let expected = EcConfig{
             cpu_fan_config: vec![
@@ -138,8 +137,7 @@ mod tests{
 
     #[test]
     fn can_write_config() -> Result<(), Error>{
-        let mut controller = EcController::new();
-        controller.path = Path::new("../mockFiles/io").to_path_buf();
+        let controller = EcController::new();
         let balanced = EcConfig{
             cpu_fan_config: vec![
                 FanConfig{speed: 45, temp: 50 },
@@ -193,8 +191,7 @@ mod tests{
 
     #[test]
     fn can_read_and_write_cooler_boost() -> Result<(), io::Error>{
-        let mut controller = EcController::new();
-        controller.path = Path::new("../mockFiles/io").to_path_buf();
+        let controller = EcController::new();
         controller.set_cooler_boost(false)?;
         assert!(!controller.is_cooler_boost_enabled()?);
         controller.set_cooler_boost(true)?;
@@ -204,8 +201,7 @@ mod tests{
 
     #[test]
     fn can_read_and_write_charging_limit() -> Result<(), io::Error>{
-        let mut controller = EcController::new();
-        controller.path = Path::new("../mockFiles/io").to_path_buf();
+        let controller = EcController::new();
         controller.set_charging_limit(80)?;
         assert_eq!(controller.get_charging_limit()?, 80);
         controller.set_charging_limit(60)?;

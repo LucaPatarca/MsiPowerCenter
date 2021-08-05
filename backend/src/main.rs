@@ -1,7 +1,8 @@
 
 mod model;
-mod controller;
+mod hwconfig;
 mod communication;
+mod profile;
 
 fn main() {
 

@@ -1,5 +1,5 @@
 use std::{fmt::Error, fs::{read_dir}, io, path::Path};
-use crate::{controller::file_utils::*, model::{paths::Paths, profile::CpuConfig}};
+use crate::{hwconfig::file_utils::*, model::{paths::Paths, profile::CpuConfig}};
 
 pub struct CpuController {
     cpu_count: i32,
@@ -73,7 +73,8 @@ mod tests{
 
     #[test]
     fn can_initialize_correctly(){
-        let controller = CpuController::new();
+        let mut controller = CpuController::new();
+        controller.paths = Paths::new_test();
         assert_eq!(controller.cpu_count, 8);
         assert_eq!(controller.max_freq, 4800000);
         assert_eq!(controller.min_freq, 400000);
@@ -88,7 +89,8 @@ mod tests{
 
     #[test]
     fn can_read_config() -> Result<(), Error>{
-        let controller = CpuController::new();
+        let mut controller = CpuController::new();
+        controller.paths = Paths::new_test();
         let config = controller.read_config()?;
         assert_eq!(config.energy_pref, "balance_performance");
         assert_eq!(config.governor, "powersave");
@@ -102,8 +104,7 @@ mod tests{
 
     #[test]
     fn can_write_config() -> Result<(), Error>{
-        let mut controller = CpuController::new();
-        controller.paths = Paths::new_debug();
+        let controller = CpuController::new();
         let mut config = CpuConfig{
             max_freq:3000000, 
             min_freq:400000, 
@@ -186,8 +187,7 @@ mod tests{
 
     #[test]
     fn fails_on_write_wrong_config() {
-        let mut controller = CpuController::new();
-        controller.paths = Paths::new_debug();
+        let controller = CpuController::new();
         let mut config = CpuConfig{
             max_freq:10000000, 
             min_freq:400000, 
