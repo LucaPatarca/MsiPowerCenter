@@ -15,16 +15,18 @@ class ProfileButton extends StatefulWidget {
 class _ProfileButtonState extends State<ProfileButton> {
   Future<void> setProfileFuture = Future.value();
 
-  VoidCallback setProfileCallback(
+  VoidCallback? setProfileCallback(
       BuildContext context, AsyncSnapshot snapshot, Profile profile) {
     if (snapshot.connectionState == ConnectionState.done) {
       return () {
         ProfileProvider provider = context.read<ProfileProvider>();
+        var oldSelection = provider.getProfileSelection();
         provider.setProfileSelection(Profile.Changing);
         setProfileFuture = provider.setProfile(profile).catchError((e) {
+          provider.setProfileSelection(oldSelection);
           print(e);
           ScaffoldMessenger.of(context)
-              .showSnackBar(SnackBar(content: Text("Unable to set profile")));
+              .showSnackBar(SnackBar(content: Text(e.toString())));
         });
       };
     } else {

@@ -8,11 +8,9 @@ cd gui
 flutter build linux --release
 sudo cp -r build/linux/x64/release/bundle /opt/MsiPowerCenter/
 
-cd ../cli
-[ -d "build" ] || mkdir build
-cmake -S . -B build -DCMAKE_BUILD_TYPE:STRING=Release
-cmake --build build --target backend -- -j 10
-sudo cp build/backend /opt/MsiPowerCenter/
+cd ../backend
+cargo build --release
+sudo cp target/release/backend /opt/MsiPowerCenter/
 
 cd ..
 sudo cp -r icon.png /opt/MsiPowerCenter/

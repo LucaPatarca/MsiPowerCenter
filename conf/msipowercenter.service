@@ -7,11 +7,6 @@ Type=simple
 WorkingDirectory=/opt/MsiPowerCenter/
 RestartSec=1
 ExecStart=/opt/MsiPowerCenter/backend
-ExecStop=/usr/bin/sh -c 'echo q > /opt/MsiPowerCenter/pipes/input && while [ -f "/opt/MsiPowerCenter/pipes/input" ] ; do sleep 1; done'
-KillMode=control-group
-TimeoutStopSec=5
-TimeoutStartSec=5
-TimeoutSec=5
 
 [Install]
 WantedBy=multi-user.target

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 class FanConfig {
-  FanConfig(this.temp, this.speed);
+  const FanConfig(this.temp, this.speed);
   final int temp;
   final int speed;
 

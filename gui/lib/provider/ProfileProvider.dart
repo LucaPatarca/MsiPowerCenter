@@ -28,20 +28,9 @@ class ProfileProvider with ChangeNotifier {
 
   Future<ProfileConfig> readProfile() async {
     _profile = await service.readProfile();
-    Profile selection = Profile.Changing;
-    var i = 0;
-    while (selection == Profile.Changing && i < Profile.values.length) {
-      try {
-        selection = Profile.values[i++];
-        Config config =
-            Config.fromStrings(File(selection.path).readAsLinesSync());
-        var toTest = ProfileConfig.fromConfig(config);
-        if (_profile != toTest) selection = Profile.Changing;
-      } catch (e) {
-        selection = Profile.Changing;
-      }
-    }
-    _selection = selection;
+    _selection = Profile.values.firstWhere(
+        (element) => element.name == _profile.name,
+        orElse: () => Profile.Changing);
     notifyListeners();
     return _profile;
   }
@@ -51,15 +40,15 @@ class ProfileProvider with ChangeNotifier {
   }
 
   Future<void> setProfile(Profile profile) async {
-    await service.applyProfile(profile);
-    _profile = await service.readProfile();
+    _profile = await service.applyProfile(profile);
     setProfileSelection(profile);
     notifyListeners();
   }
 
   Future<void> toggleCoolerBoost() async {
-    await service.setCoolerBoostEnabled(!_profile.ec.coolerBoostEnabled);
-    _profile.ec.coolerBoostEnabled = await service.isCoolerBoostEnabled();
+    bool result =
+        await service.setCoolerBoostEnabled(!_profile.ec.coolerBoostEnabled);
+    _profile = _profile.copyWith(coolerBoost: result);
     notifyListeners();
   }
 }

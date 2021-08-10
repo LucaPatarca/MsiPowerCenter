@@ -21,16 +21,32 @@ impl ProfileController{
         }
     }
 
-    pub fn apply_profile(&self,name: &'static str) -> Result<(), String>{
+    pub fn apply_profile<'a>(&self,name: &'a str) -> Result<(), String>{
         let profile = self.available_profofiles.get(name).ok_or(format!("no profile found for name: {}",name))?;
         self.cpu_controller.write_config(profile.cpu).map_err(|e| format!("Error writing cpu config: {}",e))?;
         self.ec_controller.write_config(profile.ec).map_err(|e| format!("Error writing ec config: {}",e))
+    }
+
+    pub fn set_cooler_boost(&self,value: bool) -> Result<(), String>{
+        self.ec_controller.set_cooler_boost(value).map_err(|e|e.to_string())
+    }
+
+    pub fn set_charging_limit(&self, value: u8) -> Result<(), String>{
+        self.ec_controller.set_charging_limit(value).map_err(|e|e.to_string())
     }
 
     pub fn read_profile(&self) -> Result<Profile, String>{
         let cpu = self.cpu_controller.read_config().map_err(|e|format!("Error reading cpu config: {}", e))?;
         let ec = self.ec_controller.read_config().map_err(|e|format!("Error reading ec config: {}", e))?;
         Ok(Profile{name: self.available_profofiles.find_name(cpu.to_owned(), ec.to_owned()), cpu, ec})
+    }
+
+    pub fn is_cooler_boost_enabled(&self) -> Result<bool, String>{
+        self.ec_controller.is_cooler_boost_enabled().map_err(|e|e.to_string())
+    }
+
+    pub fn get_charging_limit(&self) -> Result<u8, String>{
+        self.ec_controller.get_charging_limit().map_err(|e|e.to_string())
     }
 
     pub fn get_available_profiles(&self) -> Vec<String>{
@@ -64,5 +80,3 @@ mod tests{
         Ok(())
     }
 }
-
-//FIXME i test non funzionano se eseguiti insieme, fare in modo che ogni test di scrittura generi una propria directory

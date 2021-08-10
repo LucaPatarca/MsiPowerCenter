@@ -1,95 +1,93 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:flutter/foundation.dart';
+import 'package:myapp/model/Command.dart';
 import 'package:myapp/model/profiles.dart';
 import 'package:myapp/model/ProfileConfig.dart';
 import 'package:myapp/service/ProfileService.dart';
 
-const QUIT = 0;
-const GET = 1;
-const SET = 2;
-const PERFORMANCE = 3;
-const BALANCED = 4;
-const SILENCE = 5;
-const BATTERY = 6;
-const COOLER_BOOST = 7;
-const CHARGING_LIMIT = 8;
-const PROFILE = 9;
-
 class ProfileServiceDaemon implements ProfileService {
-  final input = File("/opt/MsiPowerCenter/pipes/input");
-  final output = File("/opt/MsiPowerCenter/pipes/output");
+  final input =
+      File(kDebugMode ? "../input_debug" : "/opt/MsiPowerCenter/pipes/input");
+  final output =
+      File(kDebugMode ? "../output_debug" : "/opt/MsiPowerCenter/pipes/output");
 
   @override
-  Future<void> applyProfile(Profile profile) async {
-    writeInput(SET);
-    switch (profile) {
-      case Profile.Performance:
-        writeInput(PERFORMANCE);
-        break;
-      case Profile.Balanced:
-        writeInput(BALANCED);
-        break;
-      case Profile.Silent:
-        writeInput(SILENCE);
-        break;
-      case Profile.Battery:
-        writeInput(BATTERY);
-        break;
-      case Profile.Changing:
-        break;
-    }
+  Future<ProfileConfig> applyProfile(Profile profile) async {
+    var command = Command(
+        toSet: ToSet(CommandCategory.Profile, profile.name),
+        toGet: ToGet(CommandCategory.Profile));
+    _sendCommand(command);
+    return _readProfile();
   }
 
   @override
   Future<bool> isCoolerBoostEnabled() async {
-    writeInput(GET);
-    writeInput(COOLER_BOOST);
-    String jsonString = await readOutput();
-    var json = jsonDecode(jsonString);
-    return json["coolerBoost"];
+    var command = Command(toGet: ToGet(CommandCategory.CoolerBoost));
+    _sendCommand(command);
+    return _readCoolerBoost();
+  }
+
+  Future<bool> _readCoolerBoost() async {
+    return jsonDecode(await _readOutput());
   }
 
   @override
   Future<int> readChargingLimit() async {
-    writeInput(GET);
-    writeInput(CHARGING_LIMIT);
-    String jsonString = await readOutput();
-    var json = jsonDecode(jsonString);
-    return json["chargingLimit"];
+    var command = Command(toGet: ToGet(CommandCategory.ChargingLimit));
+    _sendCommand(command);
+    return _readChargingLimit();
+  }
+
+  Future<int> _readChargingLimit() async {
+    return jsonDecode(await _readOutput());
   }
 
   @override
   Future<ProfileConfig> readProfile() async {
-    writeInput(GET);
-    writeInput(PROFILE);
-    String jsonString = await readOutput();
-    var json = jsonDecode(jsonString);
+    var command = Command(toGet: ToGet(CommandCategory.Profile));
+    _sendCommand(command);
+    return _readProfile();
+  }
+
+  Future<ProfileConfig> _readProfile() async {
+    String jsonString = await _readOutput();
+    Map<String, dynamic> json = jsonDecode(jsonString);
+    if (json.containsKey("error")) {
+      throw Exception(json["error"]);
+    }
     return ProfileConfig.fromJson(json);
   }
 
   @override
-  Future<void> setChargingLimit() {
-    // TODO: implement setChargingLimit
-    throw UnimplementedError();
+  Future<int> setChargingLimit(int value) async {
+    var command = Command(
+        toSet: ToSet(CommandCategory.CoolerBoost, value),
+        toGet: ToGet(CommandCategory.ChargingLimit));
+    _sendCommand(command);
+    return _readChargingLimit();
   }
 
   @override
-  Future<void> setCoolerBoostEnabled(bool value) async {
-    writeInput(SET);
-    writeInput(COOLER_BOOST);
-    writeInput(value ? 1 : 0);
+  Future<bool> setCoolerBoostEnabled(bool value) async {
+    var command = Command(
+        toSet: ToSet(CommandCategory.CoolerBoost, value),
+        toGet: ToGet(CommandCategory.CoolerBoost));
+    _sendCommand(command);
+    return _readCoolerBoost();
   }
 
-  void writeInput(int value) {
-    input.writeAsBytesSync([value]);
+  void _sendCommand(Command command) {
+    var json = jsonEncode(command);
+    json += "\n";
+    input.writeAsStringSync(json);
   }
 
-  Future<String> readOutput() async {
-    var stream = output
-        .openRead()
-        .takeWhile((element) => element != "\n".codeUnits)
-        .timeout(Duration(seconds: 5));
-    return String.fromCharCodes(await stream.first);
+  Future<String> _readOutput() async {
+    var result = output
+        .readAsString()
+        .timeout(Duration(seconds: 5), onTimeout: () => "");
+    return result;
   }
 }

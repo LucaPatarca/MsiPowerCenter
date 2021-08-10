@@ -61,8 +61,8 @@ class EcControllerImpl implements EcController {
     ec.closeSync();
 
     var profile = EcConfig.empty();
-    profile.coolerBoostEnabled = isCooolerBoostEnabled;
-    profile.chargingThreshold = chargingThreshold;
+    profile = profile.copyWith(coolerBoost: isCooolerBoostEnabled);
+    // profile.chargingThreshold = chargingThreshold;
     for (int i = 0; i < 7; i++) {
       profile.cpuFanConfig[i] = new FanConfig(cpuTemps[i], cpuFans[i]);
       profile.gpuFanConfig[i] = new FanConfig(gpuTemps[i], gpuFans[i]);

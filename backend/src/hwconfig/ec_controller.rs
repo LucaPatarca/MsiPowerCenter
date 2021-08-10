@@ -137,7 +137,9 @@ mod tests{
 
     #[test]
     fn can_write_config() -> Result<(), Error>{
-        let controller = EcController::new();
+        let mut controller = EcController::new();
+        std::fs::copy("test_files/io", "test_files/io_write1")?;
+        controller.path = Path::new("test_files/io_write1").to_path_buf();
         let balanced = EcConfig{
             cpu_fan_config: vec![
                 FanConfig{speed: 45, temp: 50 },
@@ -186,28 +188,35 @@ mod tests{
         controller.write_config(battery.to_owned())?;
         config = controller.read_config()?;
         assert_eq!(config, battery);
+        std::fs::remove_file("test_files/io_write1")?;
         Ok(())
     }
 
     #[test]
     fn can_read_and_write_cooler_boost() -> Result<(), io::Error>{
-        let controller = EcController::new();
+        let mut controller = EcController::new();
+        std::fs::copy("test_files/io", "test_files/io_write2")?;
+        controller.path = Path::new("test_files/io_write2").to_path_buf();
         controller.set_cooler_boost(false)?;
         assert!(!controller.is_cooler_boost_enabled()?);
         controller.set_cooler_boost(true)?;
         assert!(controller.is_cooler_boost_enabled()?);
+        std::fs::remove_file("test_files/io_write2")?;
         Ok(())
     }
 
     #[test]
     fn can_read_and_write_charging_limit() -> Result<(), io::Error>{
-        let controller = EcController::new();
+        let mut controller = EcController::new();
+        std::fs::copy("test_files/io", "test_files/io_write3")?;
+        controller.path = Path::new("test_files/io_write3").to_path_buf();
         controller.set_charging_limit(80)?;
         assert_eq!(controller.get_charging_limit()?, 80);
         controller.set_charging_limit(60)?;
         assert_eq!(controller.get_charging_limit()?, 60);
         assert!(controller.set_charging_limit(10).is_err());
         assert!(controller.set_charging_limit(110).is_err());
+        std::fs::remove_file("test_files/io_write3")?;
         Ok(())
     }
 }

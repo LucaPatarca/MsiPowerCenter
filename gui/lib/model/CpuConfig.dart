@@ -3,44 +3,41 @@ import 'dart:ui';
 import 'package:ini/ini.dart';
 
 class CpuConfig {
-  int maxFreq = 0;
-  int minFreq = 0;
-  String governor = "null";
-  String energyPref = "null";
-  int maxPerf = 0;
-  int minPerf = 0;
-  bool turboEnabled = false;
+  final int maxFreq;
+  final int minFreq;
+  final String governor;
+  final String energyPref;
+  final int maxPerf;
+  final int minPerf;
+  final bool turboEnabled;
 
-  CpuConfig.fromConfig(Config config) {
-    this.maxFreq = int.parse(config.get("Power", "CpuMaxFreq"));
-    this.minFreq = int.parse(config.get("Power", "CpuMinFreq"));
-    this.governor = config.get("Power", "CpuScalingGovernor");
-    this.energyPref = config.get("Power", "CpuEnergyPreference");
-    this.maxPerf = int.parse(config.get("Power", "CpuMaxPerf"));
-    this.minPerf = int.parse(config.get("Power", "CpuMinPerf"));
-    this.turboEnabled =
-        config.get("Power", "CpuTurboEnabled").toLowerCase() == "true";
-  }
+  CpuConfig.fromConfig(Config config)
+      : maxFreq = int.parse(config.get("Power", "CpuMaxFreq") ?? "0"),
+        minFreq = int.parse(config.get("Power", "CpuMinFreq") ?? "0"),
+        governor = config.get("Power", "CpuScalingGovernor") ?? "unknown",
+        energyPref = config.get("Power", "CpuEnergyPreference") ?? "unknown",
+        maxPerf = int.parse(config.get("Power", "CpuMaxPerf") ?? "0"),
+        minPerf = int.parse(config.get("Power", "CpuMinPerf") ?? "0"),
+        turboEnabled =
+            config.get("Power", "CpuTurboEnabled")?.toLowerCase() == "true";
 
-  CpuConfig.fromJson(Map<String, dynamic> json) {
-    this.maxFreq = json["maxFrequency"];
-    this.minFreq = json["minFrequency"];
-    this.governor = json["governor"];
-    this.energyPref = json["energyPreference"];
-    this.maxPerf = json["maxPerformance"];
-    this.minPerf = json["minPerformance"];
-    this.turboEnabled = json["turbo"];
-  }
+  CpuConfig.fromJson(Map<String, dynamic> json)
+      : maxFreq = json["max_freq"],
+        minFreq = json["min_freq"],
+        governor = json["governor"],
+        energyPref = json["energy_pref"],
+        maxPerf = json["max_perf"],
+        minPerf = json["min_perf"],
+        turboEnabled = json["turbo"];
 
-  CpuConfig.empty() {
-    maxFreq = 0;
-    minFreq = 0;
-    governor = "null";
-    energyPref = "null";
-    maxPerf = 0;
-    minPerf = 0;
-    turboEnabled = false;
-  }
+  const CpuConfig.empty()
+      : maxFreq = 0,
+        minFreq = 0,
+        governor = "null",
+        energyPref = "null",
+        maxPerf = 0,
+        minPerf = 0,
+        turboEnabled = false;
 
   @override
   bool operator ==(Object other) {

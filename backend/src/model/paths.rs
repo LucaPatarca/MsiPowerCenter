@@ -16,7 +16,7 @@ pub struct Paths{
 }
 
 impl Paths {
-    fn new(cpufreq: &'static str, pstate: &'static str, cpu_count: i32) -> Self{
+    fn new<'r>(cpufreq: &'r str, pstate: &'r str, cpu_count: i32) -> Self{
         let cpufreq_base_path = Path::new(cpufreq).to_path_buf();
         let pstate_base_path = Path::new(pstate).to_path_buf();
         let scaling_max_freq = (0..cpu_count).map(|i|cpufreq_base_path.join(Path::new(&format!("cpu{}/cpufreq/{}",i,"scaling_max_freq")))).collect();
@@ -58,6 +58,11 @@ impl Paths {
         Paths::new("test_files/mockFiles/cpufreq/", "test_files/mockFiles/intel_pstate/", cpu_count)
     }
 
+    pub fn new_test_write(num: i32) -> Self{
+        let cpu_count = Self::get_cpu_count(format!("test_files/mockFiles_write{}/cpufreq/",num).as_str());
+        Paths::new(format!("test_files/mockFiles_write{}/cpufreq/",num).as_str(), format!("test_files/mockFiles_write{}/intel_pstate/",num).as_str(), cpu_count)
+    }
+
     pub fn new_auto() -> Self{
         if cfg!(debug_assertions){
             Self::new_debug()
@@ -66,7 +71,7 @@ impl Paths {
         }
     }
 
-    fn get_cpu_count(cpufreq_path: &'static str) -> i32{
+    fn get_cpu_count<'r>(cpufreq_path: &'r str) -> i32{
         let count = read_dir(Path::new(&cpufreq_path)).unwrap().filter(|entry| {
             let name = entry.as_ref().unwrap().file_name();
             let string_name = name.to_string_lossy().to_string();

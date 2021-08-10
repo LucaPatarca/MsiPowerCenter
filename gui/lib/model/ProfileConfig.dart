@@ -4,32 +4,33 @@ import 'package:myapp/model/CpuConfig.dart';
 import 'package:myapp/model/EcConfig.dart';
 
 class ProfileConfig {
-  String name = "";
-  CpuConfig cpu = CpuConfig.empty();
-  EcConfig ec = EcConfig.empty();
+  final String name;
+  final CpuConfig cpu;
+  final EcConfig ec;
 
-  ProfileConfig(CpuConfig cpuConfig, EcConfig ecConfig) {
-    this.name = "Unknown";
-    this.cpu = cpuConfig;
-    this.ec = ecConfig;
-  }
+  const ProfileConfig(this.cpu, this.ec, {this.name = "unknown"});
 
-  ProfileConfig.fromJson(Map<String, dynamic> json) {
-    this.name = "Current";
-    this.cpu = CpuConfig.fromJson(json);
-    this.ec = EcConfig.fromJson(json);
-  }
+  ProfileConfig.fromJson(Map<String, dynamic> json)
+      : cpu = CpuConfig.fromJson(json["cpu"]),
+        ec = EcConfig.fromJson(json["ec"]),
+        name = json["name"];
 
-  ProfileConfig.fromConfig(Config config) {
-    this.name = config.get("General", "Name");
-    this.cpu = CpuConfig.fromConfig(config);
-    this.ec = EcConfig.fromConfig(config);
-  }
+  ProfileConfig.fromConfig(Config config)
+      : name = config.get("General", "Name") ?? "unknown",
+        cpu = CpuConfig.fromConfig(config),
+        ec = EcConfig.fromConfig(config);
 
-  ProfileConfig.empty() {
-    name = "empty";
-    cpu = CpuConfig.empty();
-    ec = EcConfig.empty();
+  const ProfileConfig.empty()
+      : name = "empty",
+        cpu = const CpuConfig.empty(),
+        ec = const EcConfig.empty();
+
+  ProfileConfig copyWith({bool? coolerBoost}) {
+    if (coolerBoost != null) {
+      return ProfileConfig(cpu, ec.copyWith(coolerBoost: coolerBoost),
+          name: name);
+    }
+    return this;
   }
 
   @override

@@ -1,4 +1,4 @@
-use std::{fs::{ReadDir, read_dir}, ops::Index};
+use std::fs::read_dir;
 
 use ini::Ini;
 
@@ -33,7 +33,7 @@ impl AvailableProfiles{
         AvailableProfiles{profiles, cur: 0}
     }
 
-    pub fn get(&self, index: &'static str)->Option<Profile>{
+    pub fn get<'g>(&self, index: &'g str)->Option<Profile>{
         for profile in self.profiles.clone(){
             if profile.name == index{
                 return Some(profile);

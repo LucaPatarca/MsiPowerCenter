@@ -6,7 +6,7 @@ import 'package:myapp/model/ProfileConfig.dart';
 class FanCurve extends StatefulWidget {
   final ProfileConfig profile;
 
-  FanCurve(this.profile, {Key key}) : super(key: key);
+  FanCurve(this.profile, {Key? key}) : super(key: key);
 
   @override
   _FanCurveState createState() => _FanCurveState();
@@ -16,9 +16,9 @@ class _FanCurveState extends State<FanCurve> {
   String selection = "cpu";
 
   List<Color> gradientColors = [
-    Colors.green[300],
+    Colors.green[300]!,
     Colors.yellow,
-    Colors.red[300],
+    Colors.red[300]!,
   ];
 
   double getDataMinTemp() {
@@ -155,7 +155,7 @@ class _FanCurveState extends State<FanCurve> {
                   ),
                   style: ButtonStyle(
                       overlayColor: MaterialStateProperty.resolveWith(
-                          (states) => Colors.red[400].withOpacity(0.1))),
+                          (states) => Colors.red[400]?.withOpacity(0.1))),
                 ))
           ],
         ),

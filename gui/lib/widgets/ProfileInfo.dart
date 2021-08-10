@@ -5,7 +5,8 @@ import 'package:provider/provider.dart';
 
 class ProfileInfo extends StatelessWidget {
   final ProfileConfig profile;
-  const ProfileInfo({Key key, this.profile}) : super(key: key);
+  const ProfileInfo({Key? key, this.profile = const ProfileConfig.empty()})
+      : super(key: key);
 
   @override
   Widget build(BuildContext context) {

@@ -12,11 +12,12 @@ class ProfileServiceImpl implements ProfileService {
   final ecController = new EcControllerImpl();
   final cpuController = new CpuControllerImpl();
 
-  Future<void> applyProfile(Profile profile) async {
+  Future<ProfileConfig> applyProfile(Profile profile) async {
     Config config = Config.fromStrings(File(profile.path).readAsLinesSync());
     var profileConfig = ProfileConfig.fromConfig(config);
     ecController.applyConfig(profileConfig.ec);
     cpuController.applyConfig(profileConfig.cpu);
+    return profileConfig;
   }
 
   Future<ProfileConfig> readProfile() async {
@@ -25,7 +26,7 @@ class ProfileServiceImpl implements ProfileService {
     return ProfileConfig(cpuConfig, ecConfig);
   }
 
-  Future<void> setCoolerBoostEnabled(bool value) async {
+  Future<bool> setCoolerBoostEnabled(bool value) async {
     ecController.setCoolerBoost(value);
     return ecController.isCoolerBoostEnabled();
   }
@@ -43,7 +44,7 @@ class ProfileServiceImpl implements ProfileService {
   }
 
   @override
-  Future<void> setChargingLimit() {
+  Future<int> setChargingLimit(int value) {
     // TODO: implement setChargingLimit
     throw UnimplementedError();
   }

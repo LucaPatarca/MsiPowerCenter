@@ -1,4 +1,4 @@
-use std::{fmt::Error, fs::{read_dir}, io, path::Path};
+use std::io;
 use crate::{hwconfig::file_utils::*, model::{paths::Paths, profile::CpuConfig}};
 
 pub struct CpuController {
@@ -67,7 +67,9 @@ impl CpuController{
 
 #[cfg(test)]
 mod tests{
-    use std::io::Error;
+    use std::{fs, io::Error};
+
+    use crate::utils::copy;
 
     use super::*;
 
@@ -104,7 +106,9 @@ mod tests{
 
     #[test]
     fn can_write_config() -> Result<(), Error>{
-        let controller = CpuController::new();
+        copy("test_files/mockFiles", "test_files/mockFiles_write1")?;
+        let mut controller = CpuController::new();
+        controller.paths = Paths::new_test_write(1);
         let mut config = CpuConfig{
             max_freq:3000000, 
             min_freq:400000, 
@@ -182,12 +186,15 @@ mod tests{
         assert_eq!(config.max_perf, read_file_as_int(&controller.paths.pstate_max_perf)?);
         assert_eq!(config.min_perf, read_file_as_int(&controller.paths.pstate_min_perf)?);
         assert_eq!(config.turbo, read_file_as_int(&controller.paths.pstate_no_turbo)?==0);
+        fs::remove_dir_all("test_files/mockFiles_write1")?;
         Ok(())
     }
 
     #[test]
-    fn fails_on_write_wrong_config() {
-        let controller = CpuController::new();
+    fn fails_on_write_wrong_config() -> Result<(),Error>{
+        copy("test_files/mockFiles", "test_files/mockFiles_write2")?;
+        let mut controller = CpuController::new();
+        controller.paths = Paths::new_test_write(2);
         let mut config = CpuConfig{
             max_freq:10000000, 
             min_freq:400000, 
@@ -275,5 +282,7 @@ mod tests{
             turbo: true
         };
         assert!(controller.write_config(config).is_err());
+        fs::remove_dir_all("test_files/mockFiles_write2")?;
+        Ok(())
     }
 }

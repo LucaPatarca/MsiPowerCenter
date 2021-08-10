@@ -37,13 +37,13 @@ class CpuControllerImpl implements CpuController {
 
   CpuConfig readConfig() {
     var config = CpuConfig.empty();
-    config.maxFreq = _readInt(CPUFREQ_PATH + "/cpu0" + SCALING_MAX_FREQ);
-    config.minFreq = _readInt(CPUFREQ_PATH + "/cpu0" + SCALING_MIN_FREQ);
-    config.maxPerf = _readInt(PSTATE_PATH + PSTATE_MAX_PERF);
-    config.minPerf = _readInt(PSTATE_PATH + PSTATE_MIN_PERF);
-    config.turboEnabled = _readInt(PSTATE_PATH + PSTATE_NO_TURBO) == 0;
-    config.governor = _readString(CPUFREQ_PATH + "/cpu0" + SCALING_GOVERNOR);
-    config.energyPref = _readString(CPUFREQ_PATH + "/cpu0" + ENERGY_PREF);
+    // config.maxFreq = _readInt(CPUFREQ_PATH + "/cpu0" + SCALING_MAX_FREQ);
+    // config.minFreq = _readInt(CPUFREQ_PATH + "/cpu0" + SCALING_MIN_FREQ);
+    // config.maxPerf = _readInt(PSTATE_PATH + PSTATE_MAX_PERF);
+    // config.minPerf = _readInt(PSTATE_PATH + PSTATE_MIN_PERF);
+    // config.turboEnabled = _readInt(PSTATE_PATH + PSTATE_NO_TURBO) == 0;
+    // config.governor = _readString(CPUFREQ_PATH + "/cpu0" + SCALING_GOVERNOR);
+    // config.energyPref = _readString(CPUFREQ_PATH + "/cpu0" + ENERGY_PREF);
     return config;
   }
 
