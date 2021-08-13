@@ -1,12 +1,13 @@
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_neumorphic/flutter_neumorphic.dart';
 import 'package:myapp/model/FanConfig.dart';
-import 'package:myapp/model/ProfileAdapter.dart';
+import 'package:myapp/model/ProfileConfig.dart';
 
 class FanCurve extends StatefulWidget {
-  final ProfileAdapter profile;
+  final ProfileConfig profile;
 
-  FanCurve(this.profile, {Key key}) : super(key: key);
+  FanCurve(this.profile, {Key? key}) : super(key: key);
 
   @override
   _FanCurveState createState() => _FanCurveState();
@@ -16,9 +17,9 @@ class _FanCurveState extends State<FanCurve> {
   String selection = "cpu";
 
   List<Color> gradientColors = [
-    Colors.green[300],
+    Colors.green[300]!,
     Colors.yellow,
-    Colors.red[300],
+    Colors.red[300]!,
   ];
 
   double getDataMinTemp() {
@@ -50,7 +51,7 @@ class _FanCurveState extends State<FanCurve> {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.all(16.0),
+      padding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 26.0),
       child: SizedBox(
         height: 300,
         child: Stack(
@@ -74,7 +75,6 @@ class _FanCurveState extends State<FanCurve> {
                 axisTitleData: FlAxisTitleData(
                     topTitle: AxisTitle(
                         showTitle: true,
-                        titleText: getTitle(),
                         textAlign: TextAlign.center,
                         textStyle: TextStyle(
                             fontSize: 19,
@@ -134,9 +134,9 @@ class _FanCurveState extends State<FanCurve> {
                     .toList(),
                 lineTouchData: LineTouchData(enabled: false))),
             Positioned(
-                top: 20,
-                left: 40,
-                child: TextButton(
+                top: 28,
+                left: 45,
+                child: NeumorphicButton(
                   onPressed: () {
                     setState(() {
                       if (selection == "cpu")
@@ -147,15 +147,12 @@ class _FanCurveState extends State<FanCurve> {
                     });
                   },
                   child: Text(
-                    getButtonText(),
+                    this.selection,
                     style: TextStyle(
                         color: Theme.of(context).hintColor,
                         fontWeight: FontWeight.bold,
                         fontSize: 16),
                   ),
-                  style: ButtonStyle(
-                      overlayColor: MaterialStateProperty.resolveWith(
-                          (states) => Colors.red[400].withOpacity(0.1))),
                 ))
           ],
         ),
@@ -165,30 +162,10 @@ class _FanCurveState extends State<FanCurve> {
 
   List<List<FanConfig>> getData() {
     if (selection == "cpu")
-      return [widget.profile.cpuFanConfig];
+      return [widget.profile.ec.cpuFanConfig];
     else if (selection == "gpu")
-      return [widget.profile.gpuFanConfig];
+      return [widget.profile.ec.gpuFanConfig];
     else
-      return [widget.profile.cpuFanConfig, widget.profile.gpuFanConfig];
-  }
-
-  String getTitle() {
-    if (selection == "cpu") {
-      return "Cpu Fan";
-    } else if (selection == "gpu") {
-      return "Gpu Fan";
-    } else {
-      return "All Fans";
-    }
-  }
-
-  String getButtonText() {
-    if (selection == "cpu") {
-      return "gpu";
-    } else if (selection == "gpu") {
-      return "all";
-    } else {
-      return "cpu";
-    }
+      return [widget.profile.ec.cpuFanConfig, widget.profile.ec.gpuFanConfig];
   }
 }

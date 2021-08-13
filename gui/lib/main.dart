@@ -2,31 +2,51 @@ import 'dart:ui';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:myapp/service/lib.dart';
+import 'package:flutter_neumorphic/flutter_neumorphic.dart';
 
-import 'package:myapp/profiles.dart';
-import 'model/ProfileAdapter.dart';
+import 'package:myapp/model/profiles.dart';
+import 'package:myapp/provider/ProfileProvider.dart';
+import 'package:myapp/widgets/ProfileInfo.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'widgets/FanCurve.dart';
 import 'widgets/ProfileButton.dart';
+import 'package:provider/provider.dart';
 
 void main() {
-  runApp(App());
+  runApp(MultiProvider(
+    providers: [
+      ChangeNotifierProvider(create: (context) => ProfileProvider()),
+      ChangeNotifierProvider(create: (context) => ThemeModel())
+    ],
+    child: App(),
+  ));
 }
 
 class App extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
+    return NeumorphicApp(
       title: 'MSI Power Center',
-      theme: ThemeData(
-          brightness: Brightness.light, accentColor: Colors.redAccent),
-      darkTheme: ThemeData(
-          brightness: Brightness.dark,
-          accentColor: Colors.redAccent[400],
-          primaryColor: Colors.black,
-          buttonColor: Colors.redAccent[400],
-          splashColor: Colors.red),
-      themeMode: ThemeMode.dark,
+      theme: NeumorphicThemeData(
+        baseColor: Color(0xFFE0E0E0),
+        accentColor: Colors.redAccent,
+        lightSource: LightSource.topLeft,
+        variantColor: Colors.redAccent[700]!,
+        depth: 8,
+      ),
+      darkTheme: NeumorphicThemeData(
+        accentColor: Colors.redAccent[400]!,
+        baseColor: Color(0xFF3E3E3E),
+        lightSource: LightSource.topLeft,
+        shadowDarkColor: Color(0xFF202020),
+        shadowDarkColorEmboss: Color(0xFF202020),
+        shadowLightColor: Color(0xFF505050),
+        shadowLightColorEmboss: Color(0xFF505050),
+        depth: 7,
+        intensity: 0.7,
+        variantColor: Colors.redAccent[700]!,
+      ),
+      themeMode: context.watch<ThemeModel>().mode,
       home: HomePage(title: 'MSI Power Center'),
       debugShowCheckedModeBanner: false,
     );
@@ -44,28 +64,33 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  Profile _profile = Profile.Changing;
-  ProfileAdapter _currentProfile = ProfileAdapter.empty();
-  LibManager manager = new LibManager();
-  String selection = "cpu";
-
-  _HomePageState() {
-    updateCurrentProfile();
-  }
-
-  void updateCurrentProfile() {
-    manager.getOnSecondaryIsolate().then((value) {
-      setState(() {
-        _currentProfile = value;
-      });
-    });
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
+      appBar: NeumorphicAppBar(
         title: Text(widget.title),
+        centerTitle: true,
+        actions: [
+          Center(
+            child: NeumorphicButton(
+              padding: EdgeInsets.all(6.0),
+              onPressed: () => context.read<ThemeModel>().toggleMode(),
+              child: NeumorphicIcon(
+                NeumorphicTheme.isUsingDark(context)
+                    ? Icons.mode_night
+                    : Icons.light_mode,
+                style: NeumorphicStyle(
+                  color: Theme.of(context).accentColor,
+                ),
+                size: 34,
+              ),
+              style: NeumorphicStyle(
+                depth: 6,
+                boxShape: NeumorphicBoxShape.circle(),
+              ),
+            ),
+          )
+        ],
       ),
       body: Center(
         child: Column(
@@ -77,30 +102,10 @@ class _HomePageState extends State<HomePage> {
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                ProfileButton(
-                  Profile.Performance,
-                  selected: _profile == Profile.Performance,
-                  afterProfileSet: defaultAfterProfileSet,
-                  whileProfileSet: defaultWhileProfileChanging,
-                ),
-                ProfileButton(
-                  Profile.Balanced,
-                  selected: _profile == Profile.Balanced,
-                  afterProfileSet: defaultAfterProfileSet,
-                  whileProfileSet: defaultWhileProfileChanging,
-                ),
-                ProfileButton(
-                  Profile.Silent,
-                  selected: _profile == Profile.Silent,
-                  afterProfileSet: defaultAfterProfileSet,
-                  whileProfileSet: defaultWhileProfileChanging,
-                ),
-                ProfileButton(
-                  Profile.Battery,
-                  selected: _profile == Profile.Battery,
-                  afterProfileSet: defaultAfterProfileSet,
-                  whileProfileSet: defaultWhileProfileChanging,
-                )
+                ProfileButton(Profile.Performance),
+                ProfileButton(Profile.Balanced),
+                ProfileButton(Profile.Silent),
+                ProfileButton(Profile.Battery)
               ],
             ),
             Spacer(),
@@ -108,74 +113,13 @@ class _HomePageState extends State<HomePage> {
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
                 Expanded(
-                  child: FanCurve(_currentProfile),
+                  child: FanCurve(
+                      context.watch<ProfileProvider>().getCurrentProfile()),
                 ),
                 Expanded(
-                  child: SizedBox(
-                    height: 300,
-                    child: GridView.extent(
-                      maxCrossAxisExtent: 250,
-                      childAspectRatio: 2.5,
-                      shrinkWrap: true,
-                      children: [
-                        Card(
-                          child: ListTile(
-                            title: Text("Cpu Max Frequency"),
-                            subtitle:
-                                Text(_currentProfile.cpuMaxFreq.toString()),
-                          ),
-                        ),
-                        Card(
-                          child: ListTile(
-                            title: Text("Cpu Min Frequency"),
-                            subtitle:
-                                Text(_currentProfile.cpuMinFreq.toString()),
-                          ),
-                        ),
-                        Card(
-                          child: ListTile(
-                            title: Text("Cpu Max Performance"),
-                            subtitle: Text(
-                                _currentProfile.cpuMaxPerf.toString() + "%"),
-                          ),
-                        ),
-                        Card(
-                          child: ListTile(
-                            title: Text("Cpu Min Performance"),
-                            subtitle: Text(
-                                _currentProfile.cpuMinPerf.toString() + "%"),
-                          ),
-                        ),
-                        Card(
-                          child: ListTile(
-                            title: Text("Cpu governor"),
-                            subtitle: Text(_currentProfile.cpuGovernor),
-                          ),
-                        ),
-                        Card(
-                          child: ListTile(
-                            title: Text("Cpu Energy Pref"),
-                            subtitle: Text(_currentProfile.cpuEnergyPref),
-                          ),
-                        ),
-                        Card(
-                          child: ListTile(
-                            title: Text("Cpu turbo"),
-                            subtitle: Text(_currentProfile.cpuTurboEnabled
-                                ? "Enabled"
-                                : "Disabled"),
-                          ),
-                        ),
-                        Card(
-                          child: ListTile(
-                            title: Text("Cooler Boost"),
-                            subtitle: Text(_currentProfile.coolerBoostEnabled
-                                ? "Enabled"
-                                : "Disabled"),
-                          ),
-                        ),
-                      ],
-                    ),
+                  child: ProfileInfo(
+                    profile:
+                        context.watch<ProfileProvider>().getCurrentProfile(),
                   ),
                 )
               ],
@@ -185,17 +129,28 @@ class _HomePageState extends State<HomePage> {
       ),
     );
   }
+}
 
-  void defaultWhileProfileChanging() {
-    setState(() {
-      _profile = Profile.Changing;
-    });
+class ThemeModel with ChangeNotifier {
+  ThemeMode _mode;
+  late SharedPreferences prefs;
+  ThemeMode get mode => _mode;
+
+  ThemeModel({ThemeMode mode = ThemeMode.light}) : _mode = mode {
+    _loadPrefs();
   }
 
-  void defaultAfterProfileSet(Profile profile) {
-    setState(() {
-      _profile = profile;
-      updateCurrentProfile();
-    });
+  void _loadPrefs() async {
+    prefs = await SharedPreferences.getInstance();
+    bool dark = prefs.getBool("dark") ?? false;
+    _mode = dark ? ThemeMode.dark : ThemeMode.light;
+    notifyListeners();
+  }
+
+  void toggleMode() {
+    _mode = _mode == ThemeMode.light ? ThemeMode.dark : ThemeMode.light;
+    bool dark = _mode == ThemeMode.dark;
+    prefs.setBool("dark", dark);
+    notifyListeners();
   }
 }

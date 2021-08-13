@@ -1,0 +1,12 @@
+[Unit]
+Description=MsiPowerCenter Backend
+StartLimitIntervalSec=10
+
+[Service]
+Type=simple
+WorkingDirectory=/opt/MsiPowerCenter/
+RestartSec=1
+ExecStart=/opt/MsiPowerCenter/backend
+
+[Install]
+WantedBy=multi-user.target
