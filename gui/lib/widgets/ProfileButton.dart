@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_neumorphic/flutter_neumorphic.dart';
 import 'package:myapp/model/profiles.dart';
 import 'package:myapp/provider/ProfileProvider.dart';
 import 'package:provider/provider.dart';
@@ -39,26 +40,42 @@ class _ProfileButtonState extends State<ProfileButton> {
     return FutureBuilder(
       future: setProfileFuture,
       builder: (context, snapshot) {
-        return TextButton(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(
-                  widget.profile.icon,
+        return NeumorphicButton(
+          padding: EdgeInsets.all(46.0),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              NeumorphicIcon(
+                widget.profile.icon,
+                style: NeumorphicStyle(
                   color:
                       context.watch<ProfileProvider>().getProfileSelection() ==
                               widget.profile
                           ? Theme.of(context).accentColor
                           : Theme.of(context).unselectedWidgetColor,
-                  size: 120,
+                  depth:
+                      context.watch<ProfileProvider>().getProfileSelection() ==
+                              widget.profile
+                          ? 6
+                          : 0,
                 ),
-                Text(
-                  widget.profile.name,
-                  style: Theme.of(context).textTheme.headline6,
-                ),
-              ],
-            ),
-            onPressed: setProfileCallback(context, snapshot, widget.profile));
+                size: 120,
+              ),
+              Text(
+                widget.profile.name,
+                style: Theme.of(context).textTheme.headline6,
+              ),
+            ],
+          ),
+          onPressed: setProfileCallback(context, snapshot, widget.profile),
+          style: NeumorphicStyle(
+            depth: context.watch<ProfileProvider>().getProfileSelection() ==
+                    widget.profile
+                ? -7
+                : 5,
+            boxShape: NeumorphicBoxShape.circle(),
+          ),
+        );
       },
     );
   }

@@ -2,6 +2,7 @@ import 'dart:ui';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_neumorphic/flutter_neumorphic.dart';
 
 import 'package:myapp/model/profiles.dart';
 import 'package:myapp/provider/ProfileProvider.dart';
@@ -12,7 +13,10 @@ import 'package:provider/provider.dart';
 
 void main() {
   runApp(MultiProvider(
-    providers: [ChangeNotifierProvider(create: (context) => ProfileProvider())],
+    providers: [
+      ChangeNotifierProvider(create: (context) => ProfileProvider()),
+      ChangeNotifierProvider(create: (context) => ThemeModel())
+    ],
     child: App(),
   ));
 }
@@ -20,17 +24,28 @@ void main() {
 class App extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
+    return NeumorphicApp(
       title: 'MSI Power Center',
-      theme: ThemeData(
-          brightness: Brightness.light, accentColor: Colors.redAccent),
-      darkTheme: ThemeData(
-          brightness: Brightness.dark,
-          accentColor: Colors.redAccent[400],
-          primaryColor: Colors.black,
-          buttonColor: Colors.redAccent[400],
-          splashColor: Colors.red),
-      themeMode: ThemeMode.dark,
+      theme: NeumorphicThemeData(
+        baseColor: Color(0xFFE9E0D9),
+        accentColor: Colors.redAccent,
+        lightSource: LightSource.topLeft,
+        variantColor: Colors.redAccent[400]!,
+        depth: 8,
+      ),
+      darkTheme: NeumorphicThemeData(
+        accentColor: Colors.black,
+        baseColor: Color(0xFF3E3E3E),
+        lightSource: LightSource.topLeft,
+        shadowDarkColor: Color(0xFF202020),
+        shadowDarkColorEmboss: Color(0xFF202020),
+        shadowLightColor: Color(0xFF505050),
+        shadowLightColorEmboss: Color(0xFF505050),
+        depth: 7,
+        intensity: 0.7,
+        variantColor: Colors.redAccent[400]!,
+      ),
+      themeMode: context.watch<ThemeModel>().mode,
       home: HomePage(title: 'MSI Power Center'),
       debugShowCheckedModeBanner: false,
     );
@@ -48,13 +63,28 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  String selection = "cpu";
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
+      appBar: NeumorphicAppBar(
         title: Text(widget.title),
+        centerTitle: true,
+        actions: [
+          Center(
+            child: GestureDetector(
+              onTap: () => context.read<ThemeModel>().toggleMode(),
+              child: NeumorphicIcon(
+                NeumorphicTheme.isUsingDark(context)
+                    ? Icons.mode_night
+                    : Icons.light_mode,
+                style: NeumorphicStyle(
+                  color: Theme.of(context).accentColor,
+                ),
+                size: 40,
+              ),
+            ),
+          )
+        ],
       ),
       body: Center(
         child: Column(
@@ -92,5 +122,16 @@ class _HomePageState extends State<HomePage> {
         ),
       ),
     );
+  }
+}
+
+class ThemeModel with ChangeNotifier {
+  ThemeMode _mode;
+  ThemeMode get mode => _mode;
+  ThemeModel({ThemeMode mode = ThemeMode.light}) : _mode = mode;
+
+  void toggleMode() {
+    _mode = _mode == ThemeMode.light ? ThemeMode.dark : ThemeMode.light;
+    notifyListeners();
   }
 }

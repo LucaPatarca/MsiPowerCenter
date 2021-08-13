@@ -1,5 +1,6 @@
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_neumorphic/flutter_neumorphic.dart';
 import 'package:myapp/model/FanConfig.dart';
 import 'package:myapp/model/ProfileConfig.dart';
 
@@ -74,7 +75,6 @@ class _FanCurveState extends State<FanCurve> {
                 axisTitleData: FlAxisTitleData(
                     topTitle: AxisTitle(
                         showTitle: true,
-                        titleText: getTitle(),
                         textAlign: TextAlign.center,
                         textStyle: TextStyle(
                             fontSize: 19,
@@ -134,9 +134,9 @@ class _FanCurveState extends State<FanCurve> {
                     .toList(),
                 lineTouchData: LineTouchData(enabled: false))),
             Positioned(
-                top: 20,
-                left: 40,
-                child: TextButton(
+                top: 28,
+                left: 45,
+                child: NeumorphicButton(
                   onPressed: () {
                     setState(() {
                       if (selection == "cpu")
@@ -147,15 +147,12 @@ class _FanCurveState extends State<FanCurve> {
                     });
                   },
                   child: Text(
-                    getButtonText(),
+                    this.selection,
                     style: TextStyle(
                         color: Theme.of(context).hintColor,
                         fontWeight: FontWeight.bold,
                         fontSize: 16),
                   ),
-                  style: ButtonStyle(
-                      overlayColor: MaterialStateProperty.resolveWith(
-                          (states) => Colors.red[400]?.withOpacity(0.1))),
                 ))
           ],
         ),
@@ -170,25 +167,5 @@ class _FanCurveState extends State<FanCurve> {
       return [widget.profile.ec.gpuFanConfig];
     else
       return [widget.profile.ec.cpuFanConfig, widget.profile.ec.gpuFanConfig];
-  }
-
-  String getTitle() {
-    if (selection == "cpu") {
-      return "Cpu Fan";
-    } else if (selection == "gpu") {
-      return "Gpu Fan";
-    } else {
-      return "All Fans";
-    }
-  }
-
-  String getButtonText() {
-    if (selection == "cpu") {
-      return "gpu";
-    } else if (selection == "gpu") {
-      return "all";
-    } else {
-      return "cpu";
-    }
   }
 }
