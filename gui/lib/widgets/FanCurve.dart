@@ -51,7 +51,7 @@ class _FanCurveState extends State<FanCurve> {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.all(16.0),
+      padding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 26.0),
       child: SizedBox(
         height: 300,
         child: Stack(

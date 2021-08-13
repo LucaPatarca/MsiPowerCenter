@@ -41,7 +41,7 @@ class _ProfileButtonState extends State<ProfileButton> {
       future: setProfileFuture,
       builder: (context, snapshot) {
         return NeumorphicButton(
-          padding: EdgeInsets.all(46.0),
+          padding: EdgeInsets.symmetric(vertical: 18.0, horizontal: 26.0),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -73,7 +73,7 @@ class _ProfileButtonState extends State<ProfileButton> {
                     widget.profile
                 ? -7
                 : 5,
-            boxShape: NeumorphicBoxShape.circle(),
+            boxShape: NeumorphicBoxShape.roundRect(BorderRadius.circular(32.0)),
           ),
         );
       },

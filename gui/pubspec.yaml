@@ -26,6 +26,7 @@ dependencies:
   path_provider:
   provider:
   ini: ^2.1.0
+  shared_preferences: any
     
   flutter:
     sdk: flutter
