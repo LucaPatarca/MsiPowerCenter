@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_neumorphic/flutter_neumorphic.dart';
 import 'package:myapp/model/FanConfig.dart';
 import 'package:myapp/model/ProfileConfig.dart';
+import 'package:myapp/provider/ConfigProvider.dart';
+import 'package:provider/provider.dart';
 
 class FanCurve extends StatefulWidget {
   final ProfileConfig profile;
@@ -14,17 +16,15 @@ class FanCurve extends StatefulWidget {
 }
 
 class _FanCurveState extends State<FanCurve> {
-  String selection = "cpu";
-
   List<Color> gradientColors = [
     Colors.green[300]!,
     Colors.yellow,
     Colors.red[300]!,
   ];
 
-  double getDataMinTemp() {
+  double getDataMinTemp(BuildContext context) {
     double min = double.maxFinite;
-    getData().forEach((list) {
+    getData(context).forEach((list) {
       var res = list
           .reduce(
               (value, element) => value.temp < element.temp ? value : element)
@@ -35,9 +35,9 @@ class _FanCurveState extends State<FanCurve> {
     return min;
   }
 
-  double getDataMaxTemp() {
+  double getDataMaxTemp(BuildContext context) {
     double max = 0;
-    getData().forEach((list) {
+    getData(context).forEach((list) {
       var res = list
           .reduce(
               (value, element) => value.temp > element.temp ? value : element)
@@ -51,7 +51,7 @@ class _FanCurveState extends State<FanCurve> {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 26.0),
+      padding: const EdgeInsets.fromLTRB(48.0, 16.0, 16.0, 32.0),
       child: SizedBox(
         height: 300,
         child: Stack(
@@ -109,11 +109,11 @@ class _FanCurveState extends State<FanCurve> {
                     show: true,
                     border: Border.all(
                         color: Theme.of(context).dividerColor, width: 1)),
-                minX: getDataMinTemp(),
-                maxX: getDataMaxTemp(),
+                minX: getDataMinTemp(context),
+                maxX: getDataMaxTemp(context),
                 minY: 0,
                 maxY: 100,
-                lineBarsData: getData()
+                lineBarsData: getData(context)
                     .map((e) => LineChartBarData(
                         spots: e
                             .map((e) =>
@@ -137,17 +137,10 @@ class _FanCurveState extends State<FanCurve> {
                 top: 28,
                 left: 45,
                 child: NeumorphicButton(
-                  onPressed: () {
-                    setState(() {
-                      if (selection == "cpu")
-                        selection = "gpu";
-                      else if (selection == "gpu")
-                        selection = "all";
-                      else if (selection == "all") selection = "cpu";
-                    });
-                  },
+                  onPressed: () =>
+                      context.read<ThemeModel>().nextFanCurveSelection(),
                   child: Text(
-                    this.selection,
+                    context.watch<ThemeModel>().fanCurveSelection,
                     style: TextStyle(
                         color: Theme.of(context).hintColor,
                         fontWeight: FontWeight.bold,
@@ -160,7 +153,8 @@ class _FanCurveState extends State<FanCurve> {
     );
   }
 
-  List<List<FanConfig>> getData() {
+  List<List<FanConfig>> getData(BuildContext context) {
+    String selection = context.read<ThemeModel>().fanCurveSelection;
     if (selection == "cpu")
       return [widget.profile.ec.cpuFanConfig];
     else if (selection == "gpu")

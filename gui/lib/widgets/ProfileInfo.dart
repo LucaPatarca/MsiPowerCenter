@@ -18,7 +18,7 @@ class ProfileInfo extends StatelessWidget {
         maxCrossAxisExtent: 250,
         childAspectRatio: 2.5,
         shrinkWrap: true,
-        padding: EdgeInsets.fromLTRB(0, 8.0, 16.0, 0),
+        padding: EdgeInsets.fromLTRB(16.0, 8.0, 32.0, 0),
         children: [
           NeumorphicButton(
             margin: EdgeInsets.all(8.0),

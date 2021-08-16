@@ -1,7 +1,4 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
-import 'package:ini/ini.dart';
 import 'package:myapp/model/ProfileConfig.dart';
 import 'package:myapp/service/ProfileService.dart';
 import 'package:myapp/service/ProfileServiceDaemon.dart';
@@ -13,10 +10,6 @@ class ProfileProvider with ChangeNotifier {
   Profile _selection = Profile.Changing;
   ProfileService service = new ProfileServiceDaemon();
 
-  ProfileProvider() {
-    readProfile();
-  }
-
   void setProfileSelection(Profile profile) {
     this._selection = profile;
     notifyListeners();
@@ -26,13 +19,13 @@ class ProfileProvider with ChangeNotifier {
     return _selection;
   }
 
-  Future<ProfileConfig> readProfile() async {
+  Future<void> readProfile() async {
+    bool initialLoad = _profile == ProfileConfig.empty();
     _profile = await service.readProfile();
     _selection = Profile.values.firstWhere(
         (element) => element.name == _profile.name,
         orElse: () => Profile.Changing);
-    notifyListeners();
-    return _profile;
+    if (!initialLoad) notifyListeners();
   }
 
   ProfileConfig getCurrentProfile() {
