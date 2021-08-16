@@ -1,15 +1,10 @@
-import 'dart:ui';
-
-import 'package:flutter/foundation.dart';
+import 'package:bitsdojo_window/bitsdojo_window.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_neumorphic/flutter_neumorphic.dart';
-
-import 'package:myapp/model/profiles.dart';
+import 'package:myapp/App.dart';
+import 'package:myapp/provider/ConfigProvider.dart';
 import 'package:myapp/provider/ProfileProvider.dart';
-import 'package:myapp/widgets/ProfileInfo.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'widgets/FanCurve.dart';
-import 'widgets/ProfileButton.dart';
+import 'package:myapp/view/Home.dart';
 import 'package:provider/provider.dart';
 
 void main() {
@@ -20,137 +15,95 @@ void main() {
     ],
     child: App(),
   ));
+
+  doWhenWindowReady(() {
+    final initialSize = Size(1280, 720);
+    appWindow.minSize = initialSize;
+    appWindow.size = initialSize;
+    appWindow.alignment = Alignment.center;
+    appWindow.title = "Msi Power Center";
+    appWindow.show();
+  });
 }
 
-class App extends StatelessWidget {
+const borderColor = Color(0xFF805306);
+
+class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return NeumorphicApp(
-      title: 'MSI Power Center',
-      theme: NeumorphicThemeData(
-        baseColor: Color(0xFFE0E0E0),
-        accentColor: Colors.redAccent,
-        lightSource: LightSource.topLeft,
-        variantColor: Colors.redAccent[700]!,
-        depth: 8,
-      ),
-      darkTheme: NeumorphicThemeData(
-        accentColor: Colors.redAccent[400]!,
-        baseColor: Color(0xFF3E3E3E),
-        lightSource: LightSource.topLeft,
-        shadowDarkColor: Color(0xFF202020),
-        shadowDarkColorEmboss: Color(0xFF202020),
-        shadowLightColor: Color(0xFF505050),
-        shadowLightColorEmboss: Color(0xFF505050),
-        depth: 7,
-        intensity: 0.7,
-        variantColor: Colors.redAccent[700]!,
-      ),
-      themeMode: context.watch<ThemeModel>().mode,
-      home: HomePage(title: 'MSI Power Center'),
-      debugShowCheckedModeBanner: false,
-    );
+    return MaterialApp(
+        debugShowCheckedModeBanner: false,
+        home: Scaffold(
+            body:
+                WindowBorder(color: borderColor, width: 1, child: LeftSide())));
   }
 }
 
-class HomePage extends StatefulWidget {
-  HomePage({Key key = const Key("key"), this.title = "Title"})
-      : super(key: key);
+const sidebarColor = Color(0xFFF6A00C);
 
-  final String title;
-
-  @override
-  _HomePageState createState() => _HomePageState();
-}
-
-class _HomePageState extends State<HomePage> {
+class LeftSide extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: NeumorphicAppBar(
-        title: Text(widget.title),
-        centerTitle: true,
-        actions: [
-          Center(
-            child: NeumorphicButton(
-              padding: EdgeInsets.all(6.0),
-              onPressed: () => context.read<ThemeModel>().toggleMode(),
-              child: NeumorphicIcon(
-                NeumorphicTheme.isUsingDark(context)
-                    ? Icons.mode_night
-                    : Icons.light_mode,
-                style: NeumorphicStyle(
-                  color: Theme.of(context).accentColor,
-                ),
-                size: 34,
-              ),
-              style: NeumorphicStyle(
-                depth: 6,
-                boxShape: NeumorphicBoxShape.circle(),
-              ),
-            ),
-          )
-        ],
-      ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            Spacer(),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              crossAxisAlignment: CrossAxisAlignment.center,
+    return SizedBox(
+        width: 720,
+        child: Container(
+            color: sidebarColor,
+            child: Column(
               children: [
-                ProfileButton(Profile.Performance),
-                ProfileButton(Profile.Balanced),
-                ProfileButton(Profile.Silent),
-                ProfileButton(Profile.Battery)
+                WindowTitleBarBox(child: MoveWindow()),
+                WindowButtons(),
+                Expanded(child: HomePage())
               ],
-            ),
-            Spacer(),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                Expanded(
-                  child: FanCurve(
-                      context.watch<ProfileProvider>().getCurrentProfile()),
-                ),
-                Expanded(
-                  child: ProfileInfo(
-                    profile:
-                        context.watch<ProfileProvider>().getCurrentProfile(),
-                  ),
-                )
-              ],
-            )
-          ],
-        ),
-      ),
-    );
+            )));
   }
 }
 
-class ThemeModel with ChangeNotifier {
-  ThemeMode _mode;
-  late SharedPreferences prefs;
-  ThemeMode get mode => _mode;
+const backgroundStartColor = Color(0xFFFFD500);
+const backgroundEndColor = Color(0xFFF6A00C);
 
-  ThemeModel({ThemeMode mode = ThemeMode.light}) : _mode = mode {
-    _loadPrefs();
+class RightSide extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Expanded(
+        child: Container(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [backgroundStartColor, backgroundEndColor],
+                  stops: [0.0, 1.0]),
+            ),
+            child: Column(children: [
+              WindowTitleBarBox(
+                  child: Row(children: [
+                Expanded(child: MoveWindow()),
+                WindowButtons()
+              ])),
+            ])));
   }
+}
 
-  void _loadPrefs() async {
-    prefs = await SharedPreferences.getInstance();
-    bool dark = prefs.getBool("dark") ?? false;
-    _mode = dark ? ThemeMode.dark : ThemeMode.light;
-    notifyListeners();
-  }
+final buttonColors = WindowButtonColors(
+    iconNormal: Color(0xFF805306),
+    mouseOver: Color(0xFFF6A00C),
+    mouseDown: Color(0xFF805306),
+    iconMouseOver: Color(0xFF805306),
+    iconMouseDown: Color(0xFFFFD500));
 
-  void toggleMode() {
-    _mode = _mode == ThemeMode.light ? ThemeMode.dark : ThemeMode.light;
-    bool dark = _mode == ThemeMode.dark;
-    prefs.setBool("dark", dark);
-    notifyListeners();
+final closeButtonColors = WindowButtonColors(
+    mouseOver: Color(0xFFD32F2F),
+    mouseDown: Color(0xFFB71C1C),
+    iconNormal: Color(0xFF805306),
+    iconMouseOver: Colors.white);
+
+class WindowButtons extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        MinimizeWindowButton(colors: buttonColors),
+        CloseWindowButton(colors: closeButtonColors),
+      ],
+    );
   }
 }
