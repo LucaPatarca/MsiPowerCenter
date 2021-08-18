@@ -1,5 +1,7 @@
 use serde::{Deserialize, Serialize};
 
+use crate::model::realtime::{RealTimeECInfo, RealTimeInfo};
+
 use self::pipes::{create_pipes, delete_pipes, read_from_pipe, write_on_pipe};
 
 mod pipes;
@@ -8,14 +10,20 @@ mod pipes;
 const INPUT_PATH: &'static str = "./input_test_pipe";
 #[cfg(all(test, debug_assertions))]
 const OUTPUT_PATH: &'static str = "./output_test_pipe";
+#[cfg(all(test, debug_assertions))]
+const REALTIME_PATH: &'static str = "./realtime_test_pipe";
 #[cfg(not(any(test, debug_assertions)))]
 const INPUT_PATH: &'static str = "/opt/MsiPowerCenter/pipes/input";
 #[cfg(not(any(test, debug_assertions)))]
 const OUTPUT_PATH: &'static str = "/opt/MsiPowerCenter/pipes/output";
+#[cfg(not(any(test, debug_assertions)))]
+const REALTIME_PATH: &'static str = "/opt/MsiPowerCenter/pipes/realtime";
 #[cfg(all(not(test), debug_assertions))]
 const INPUT_PATH: &'static str = "../input_debug";
 #[cfg(all(not(test), debug_assertions))]
 const OUTPUT_PATH: &'static str = "../output_debug";
+#[cfg(all(not(test), debug_assertions))]
+const REALTIME_PATH: &'static str = "../realtime_debug";
 
 #[derive(Debug, PartialEq, Deserialize)]
 pub enum Category{
@@ -64,14 +72,15 @@ pub struct Command{
 #[derive(Clone)]
 pub struct CommunicationService{
     input_path: String,
-    output_path: String
+    output_path: String,
+    realtime_path: String,
 }
 
 impl CommunicationService{
 
     pub fn new() -> Self{
-        match create_pipes(String::from(INPUT_PATH), String::from(OUTPUT_PATH)) {
-            Ok(()) => CommunicationService{input_path: String::from(INPUT_PATH), output_path: String::from(OUTPUT_PATH)},
+        match create_pipes(String::from(INPUT_PATH), String::from(OUTPUT_PATH), String::from(REALTIME_PATH)) {
+            Ok(()) => CommunicationService{input_path: String::from(INPUT_PATH), output_path: String::from(OUTPUT_PATH), realtime_path: String::from(REALTIME_PATH)},
             Err(s) => panic!("{}", s)
         }
     }
@@ -80,8 +89,9 @@ impl CommunicationService{
     pub fn new_for_test(number: i32) -> Self{
         let input = String::from(&format!("{}{}", INPUT_PATH, number));
         let output = String::from(&format!("{}{}", OUTPUT_PATH, number));
-        match create_pipes(input.to_owned(), output.to_owned()) {
-            Ok(()) => CommunicationService{input_path: input, output_path: output},
+        let realtime = String::from(&format!("{}{}", REALTIME_PATH, number));
+        match create_pipes(input.to_owned(), output.to_owned(), realtime.to_owned()) {
+            Ok(()) => CommunicationService{input_path: input, output_path: output, realtime_path: realtime},
             Err(s) => panic!("{}", s)
         }
     }
@@ -124,6 +134,12 @@ impl CommunicationService{
         self.write_output(string)
     }
 
+    pub fn write_realtime_info(&self, info: RealTimeInfo) -> Result<(), String>{
+        let mut string = serde_json::to_string(&info).map_err(|e|format!("error serializing {}",e))?;
+        string.push('\n');
+        write_on_pipe(self.realtime_path.clone(), string).map_err(|e| format!("error writing: {}", e))
+    }
+
     pub fn send_stop_command(&self) -> Result<(), String>{
         write_on_pipe(self.input_path.clone(), "{}".to_string()).map_err(|e|format!("error sending command: {}",e))
     }
@@ -139,7 +155,7 @@ impl CommunicationService{
 
 impl Drop for CommunicationService{
     fn drop(&mut self) {
-        match delete_pipes(self.input_path.to_owned(), self.output_path.to_owned()){
+        match delete_pipes(self.input_path.to_owned(), self.output_path.to_owned(), self.realtime_path.to_owned()){
             Ok(()) => (),
             Err(e) => eprintln!("error deleting pipes: {}", e)
         }

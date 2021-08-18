@@ -13,7 +13,7 @@ class InactiveInfoElement extends StatelessWidget {
         depth: 1.5,
         boxShape: NeumorphicBoxShape.roundRect(BorderRadius.circular(16.0)),
       ),
-      margin: EdgeInsets.all(8.0),
+      margin: EdgeInsets.all(6.0),
       child: this.child,
     );
   }

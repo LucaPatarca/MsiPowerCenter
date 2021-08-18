@@ -1,4 +1,4 @@
-use crate::{model::profile::Profile, profile::AvailableProfiles};
+use crate::{model::{profile::Profile, realtime::RealTimeInfo}, profile::AvailableProfiles};
 
 use self::{cpu_controller::CpuController, ec_controller::EcController};
 
@@ -51,6 +51,12 @@ impl ProfileController{
 
     pub fn get_available_profiles(&self) -> Vec<String>{
         self.available_profofiles.to_owned().map(|e|e.name).collect()
+    }
+
+    pub fn get_realtime_info(&self) -> Result<RealTimeInfo, String>{
+        let ec = self.ec_controller.get_realtime_info().map_err(|e|format!("{}", e))?;
+        let cpu = self.cpu_controller.get_realtime_info().map_err(|e|format!("{}", e))?;
+        Ok(RealTimeInfo::from_ec_cpu(ec, cpu))
     }
 }
 

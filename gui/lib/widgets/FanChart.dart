@@ -4,27 +4,27 @@ import 'package:flutter_neumorphic/flutter_neumorphic.dart';
 import 'package:myapp/model/FanConfig.dart';
 import 'package:myapp/model/ProfileConfig.dart';
 import 'package:myapp/provider/ConfigProvider.dart';
+import 'package:myapp/provider/RealTimeInfoProvider.dart';
 import 'package:provider/provider.dart';
 
-class FanCurve extends StatefulWidget {
-  final ProfileConfig profile;
-
-  FanCurve(this.profile, {Key? key}) : super(key: key);
-
-  @override
-  _FanCurveState createState() => _FanCurveState();
-}
-
-class _FanCurveState extends State<FanCurve> {
-  List<Color> gradientColors = [
+class FanChart extends StatelessWidget {
+  final List<Color> gradientColors = [
     Colors.green[300]!,
     Colors.yellow,
     Colors.red[300]!,
   ];
+  final ProfileConfig profile;
+  final String selection;
 
-  double getDataMinTemp(BuildContext context) {
+  FanChart(
+      {this.profile = const ProfileConfig.empty(),
+      this.selection = "cpu",
+      Key? key})
+      : super(key: key);
+
+  double getDataMinTemp() {
     double min = double.maxFinite;
-    getData(context).forEach((list) {
+    getRawData().forEach((list) {
       var res = list
           .reduce(
               (value, element) => value.temp < element.temp ? value : element)
@@ -35,9 +35,9 @@ class _FanCurveState extends State<FanCurve> {
     return min;
   }
 
-  double getDataMaxTemp(BuildContext context) {
+  double getDataMaxTemp() {
     double max = 0;
-    getData(context).forEach((list) {
+    getRawData().forEach((list) {
       var res = list
           .reduce(
               (value, element) => value.temp > element.temp ? value : element)
@@ -48,6 +48,37 @@ class _FanCurveState extends State<FanCurve> {
     return max;
   }
 
+  List<List<FanConfig>> getRawData() {
+    if (selection == "cpu")
+      return [profile.ec.cpuFanConfig];
+    else if (selection == "gpu")
+      return [profile.ec.gpuFanConfig];
+    else
+      return [profile.ec.cpuFanConfig, profile.ec.gpuFanConfig];
+  }
+
+  List<LineChartBarData> getDataWidget(BuildContext context) {
+    var data = getRawData()
+        .map((e) => LineChartBarData(
+            spots: e
+                .map((e) => FlSpot(e.temp.toDouble(), e.speed.toDouble()))
+                .toList(),
+            isCurved: true,
+            barWidth: 5,
+            colors: gradientColors,
+            colorStops: [0, 0.4, 1],
+            isStrokeCapRound: true,
+            dotData: FlDotData(show: false),
+            belowBarData: BarAreaData(
+              show: true,
+              colors: gradientColors
+                  .map((color) => color.withOpacity(0.2))
+                  .toList(),
+            )))
+        .toList();
+    return data;
+  }
+
   @override
   Widget build(BuildContext context) {
     return Padding(
@@ -56,9 +87,10 @@ class _FanCurveState extends State<FanCurve> {
         height: 300,
         child: Stack(
           children: [
-            LineChart(LineChartData(
+            LineChart(
+              LineChartData(
                 gridData: FlGridData(
-                    show: true,
+                    show: false,
                     drawVerticalLine: true,
                     getDrawingVerticalLine: (value) {
                       return FlLine(
@@ -106,60 +138,57 @@ class _FanCurveState extends State<FanCurve> {
                   ),
                 ),
                 borderData: FlBorderData(
-                    show: true,
+                    show: false,
                     border: Border.all(
                         color: Theme.of(context).dividerColor, width: 1)),
-                minX: getDataMinTemp(context),
-                maxX: getDataMaxTemp(context),
+                minX: getDataMinTemp(),
+                maxX: getDataMaxTemp(),
                 minY: 0,
                 maxY: 100,
-                lineBarsData: getData(context)
-                    .map((e) => LineChartBarData(
-                        spots: e
-                            .map((e) =>
-                                FlSpot(e.temp.toDouble(), e.speed.toDouble()))
-                            .toList(),
-                        isCurved: true,
-                        barWidth: 5,
-                        colors: gradientColors,
-                        colorStops: [0, 0.4, 1],
-                        isStrokeCapRound: true,
-                        dotData: FlDotData(show: false),
-                        belowBarData: BarAreaData(
-                          show: true,
-                          colors: gradientColors
-                              .map((color) => color.withOpacity(0.2))
-                              .toList(),
-                        )))
-                    .toList(),
-                lineTouchData: LineTouchData(enabled: false))),
+                lineBarsData: getDataWidget(context)
+                  ..add(LineChartBarData(
+                      spots: [
+                        FlSpot(
+                            context
+                                .watch<RealTimeInfoProvider>()
+                                .info
+                                .cpuTemp
+                                .toDouble(),
+                            context
+                                .watch<RealTimeInfoProvider>()
+                                .info
+                                .cpuFanSpeed
+                                .toDouble()),
+                      ],
+                      barWidth: 0.01,
+                      colors: gradientColors,
+                      colorStops: [0, 0.4, 1],
+                      dotData: FlDotData(show: true),
+                      belowBarData: BarAreaData(show: false))),
+                lineTouchData: LineTouchData(enabled: false),
+              ),
+            ),
             Positioned(
-                top: 28,
-                left: 45,
-                child: NeumorphicButton(
-                  onPressed: () =>
-                      context.read<ThemeModel>().nextFanCurveSelection(),
-                  child: Text(
-                    context.watch<ThemeModel>().fanCurveSelection,
-                    style: TextStyle(
-                        color: Theme.of(context).hintColor,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 16),
-                  ),
-                ))
+              top: 28,
+              left: 45,
+              child: NeumorphicButton(
+                onPressed: () =>
+                    context.read<ThemeModel>().nextFanCurveSelection(),
+                child: Text(
+                  context.watch<ThemeModel>().fanCurveSelection,
+                  style: TextStyle(
+                      color: Theme.of(context).hintColor,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16),
+                ),
+                style: NeumorphicStyle(
+                  depth: 3,
+                ),
+              ),
+            ),
           ],
         ),
       ),
     );
-  }
-
-  List<List<FanConfig>> getData(BuildContext context) {
-    String selection = context.read<ThemeModel>().fanCurveSelection;
-    if (selection == "cpu")
-      return [widget.profile.ec.cpuFanConfig];
-    else if (selection == "gpu")
-      return [widget.profile.ec.gpuFanConfig];
-    else
-      return [widget.profile.ec.cpuFanConfig, widget.profile.ec.gpuFanConfig];
   }
 }
