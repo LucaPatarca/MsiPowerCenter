@@ -2,6 +2,7 @@ use std::fs::{self, OpenOptions};
 use std::io::{Error, Read, Write};
 use std::os::unix::prelude::PermissionsExt;
 
+use close_file::Closable;
 use nix::unistd::mkfifo;
 use nix::sys::stat::Mode;
 
@@ -12,17 +13,20 @@ fn create_pipe(path: String, mode: Mode) -> Result<(),String>{
     }
 }
 
-pub fn create_pipes(input_path: String, output_path: String) -> Result<(), String>{
+pub fn create_pipes(input_path: String, output_path: String, realtime_path: String) -> Result<(), String>{
     create_pipe(input_path.to_owned(), Mode::S_IRWXU | Mode::S_IRWXG | Mode::S_IRWXO)?;
     fs::set_permissions(input_path, PermissionsExt::from_mode(0o666)).map_err(|e|format!("Error setting permissions: {}",e))?;
     create_pipe(output_path.to_owned(), Mode::S_IRWXU | Mode::S_IRWXG | Mode::S_IRWXO)?;
     fs::set_permissions(output_path, PermissionsExt::from_mode(0o666)).map_err(|e|format!("Error setting permissions: {}",e))?;
+    create_pipe(realtime_path.to_owned(), Mode::S_IRWXU | Mode::S_IRWXG | Mode::S_IRWXO)?;
+    fs::set_permissions(realtime_path, PermissionsExt::from_mode(0o666)).map_err(|e|format!("Error setting permissions: {}",e))?;
     Ok(())
 }
 
-pub fn delete_pipes(input_path: String, output_path: String) -> std::io::Result<()>{
+pub fn delete_pipes(input_path: String, output_path: String, realtime_path: String) -> std::io::Result<()>{
     fs::remove_file(input_path)?;
-    fs::remove_file(output_path)
+    fs::remove_file(output_path)?;
+    fs::remove_file(realtime_path)
 }
 
 pub fn read_from_pipe(path: String) -> std::io::Result<String>{

@@ -21,7 +21,7 @@ environment:
   sdk: ">=2.12.0 <3.0.0"
 
 dependencies:
-  fl_chart: ^0.30.0
+  fl_chart: ^0.36.0
   ffi: ^1.0.0
   path_provider:
   provider:

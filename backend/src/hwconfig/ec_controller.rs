@@ -1,6 +1,6 @@
 use std::{io, path::{Path, PathBuf}};
 
-use crate::{hwconfig::file_utils::write_ec, model::profile::{EcConfig, FanConfig}};
+use crate::{hwconfig::file_utils::write_ec, model::{profile::{EcConfig, FanConfig}, realtime::RealTimeECInfo}};
 
 use super::file_utils::read_ec;
 
@@ -88,6 +88,14 @@ impl EcController{
             return Err(io::Error::new(io::ErrorKind::Other, "invalid value"));
         }
         write_ec(&self.path, CHARGING_THRESHOLD_ADDR.into(), value)
+    }
+
+    pub fn get_realtime_info(&self) -> Result<RealTimeECInfo, io::Error>{
+        let cpu_temp = read_ec(&self.path, REALTIME_CPU_TEMP.into())?;
+        let gpu_temp = read_ec(&self.path, REALTIME_GPU_TEMP.into())?;
+        let cpu_fan_speed = read_ec(&self.path, REALTIME_CPU_FAN_SPEED.into())?;
+        let gpu_fan_speed = read_ec(&self.path, REALTIME_GPU_FAN_SPEED.into())?;
+        Ok(RealTimeECInfo{cpu_temp, gpu_temp, cpu_fan_speed, gpu_fan_speed})
     }
 }
 

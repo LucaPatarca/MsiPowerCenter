@@ -10,6 +10,8 @@ class ProfileProvider with ChangeNotifier {
   Profile _selection = Profile.Changing;
   ProfileService service = new ProfileServiceDaemon();
 
+  ProfileConfig get profile => _profile;
+
   void setProfileSelection(Profile profile) {
     this._selection = profile;
     notifyListeners();
@@ -26,10 +28,6 @@ class ProfileProvider with ChangeNotifier {
         (element) => element.name == _profile.name,
         orElse: () => Profile.Changing);
     if (!initialLoad) notifyListeners();
-  }
-
-  ProfileConfig getCurrentProfile() {
-    return _profile;
   }
 
   Future<void> setProfile(Profile profile) async {

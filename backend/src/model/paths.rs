@@ -7,6 +7,7 @@ pub struct Paths{
     pub cpufreq_base_path: PathBuf,
     pub scaling_max_freq: Vec<PathBuf>,
     pub scaling_min_freq: Vec<PathBuf>,
+    pub scaling_cur_freq: Vec<PathBuf>,
     pub scaling_governor: Vec<PathBuf>,
     pub cpuinfo_max_freq: Vec<PathBuf>,
     pub cpuinfo_min_freq: Vec<PathBuf>,
@@ -21,6 +22,7 @@ impl Paths {
         let pstate_base_path = Path::new(pstate).to_path_buf();
         let scaling_max_freq = (0..cpu_count).map(|i|cpufreq_base_path.join(Path::new(&format!("cpu{}/cpufreq/{}",i,"scaling_max_freq")))).collect();
         let scaling_min_freq = (0..cpu_count).map(|i|cpufreq_base_path.join(Path::new(&format!("cpu{}/cpufreq/{}",i,"scaling_min_freq")))).collect();
+        let scaling_cur_freq = (0..cpu_count).map(|i|cpufreq_base_path.join(Path::new(&format!("cpu{}/cpufreq/{}",i,"scaling_cur_freq")))).collect();
         let scaling_governor = (0..cpu_count).map(|i|cpufreq_base_path.join(Path::new(&format!("cpu{}/cpufreq/{}",i,"scaling_governor")))).collect();
         let cpuinfo_max_freq = (0..cpu_count).map(|i|cpufreq_base_path.join(Path::new(&format!("cpu{}/cpufreq/{}",i,"cpuinfo_max_freq")))).collect();
         let cpuinfo_min_freq = (0..cpu_count).map(|i|cpufreq_base_path.join(Path::new(&format!("cpu{}/cpufreq/{}",i,"cpuinfo_min_freq")))).collect();
@@ -34,6 +36,7 @@ impl Paths {
             cpufreq_base_path,
             scaling_max_freq,
             scaling_min_freq,
+            scaling_cur_freq,
             scaling_governor,
             cpuinfo_min_freq,
             cpuinfo_max_freq,

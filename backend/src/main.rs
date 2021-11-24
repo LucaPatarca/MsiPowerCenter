@@ -1,4 +1,4 @@
-use std::{sync::{Arc, atomic::AtomicBool}, thread};
+use std::{sync::{Arc, atomic::AtomicBool}, thread, time::Duration};
 
 use communication::CommunicationService;
 use hwconfig::ProfileController;
@@ -67,6 +67,7 @@ fn test(com_service: &CommunicationService, profile_controller: &ProfileControll
 fn main() {
     let com_service = CommunicationService::new();
     let com_service_clone = com_service.clone();
+    let com_service_clone2 = com_service.clone();
     let profile_controller = ProfileController::new();
     let exec = Arc::new(AtomicBool::from(true));
     let exec_clone = exec.clone();
@@ -74,9 +75,26 @@ fn main() {
     let mut signals = Signals::new(&[SIGINT, SIGTERM]).expect("Error mapping signals");
 
     thread::spawn(move || {
+        let mut second_time = false;
         for _ in signals.forever() {
-            exec_clone.store(false, std::sync::atomic::Ordering::Relaxed);
-            com_service_clone.send_stop_command().expect("Error writing exit command");
+            if second_time{
+                std::process::exit(1);
+            }else{
+                second_time = true;
+                exec_clone.store(false, std::sync::atomic::Ordering::Relaxed);
+                com_service_clone.send_stop_command().expect("Error writing exit command");
+            }
+        }
+    });
+
+    thread::spawn(move ||{
+        let profile_controller_thread = ProfileController::new();
+        loop{
+            match profile_controller_thread.get_realtime_info() {
+                Ok(info) => com_service_clone2.write_realtime_info(info).unwrap_or_else(|e|eprintln!("error: {}",e)),
+                Err(e) => eprintln!("error: {}",e)
+            }
+            thread::sleep(Duration::from_secs(1));
         }
     });
     
@@ -92,5 +110,5 @@ fn main() {
         }
     }
 
-    println!("program cleanly stopped");
+    println!("\nprogram cleanly stopped");
 }

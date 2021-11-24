@@ -1,5 +1,5 @@
 use std::io;
-use crate::{hwconfig::file_utils::*, model::{paths::Paths, profile::CpuConfig}};
+use crate::{hwconfig::file_utils::*, model::{paths::Paths, profile::CpuConfig, realtime::RealTimeCPUInfo}};
 
 pub struct CpuController {
     cpu_count: i32,
@@ -61,6 +61,11 @@ impl CpuController{
         let turbo = if config.turbo {0.to_string()} else {1.to_string()};
         write_file(&self.paths.pstate_no_turbo, turbo)?;
         Ok(())
+    }
+
+    pub fn get_realtime_info(&self) -> Result<RealTimeCPUInfo, io::Error>{
+        let freq = read_file_as_int(&self.paths.scaling_cur_freq[0])?;
+        Ok(RealTimeCPUInfo{freq})
     }
     
 }

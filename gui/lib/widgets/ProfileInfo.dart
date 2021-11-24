@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_neumorphic/flutter_neumorphic.dart';
 import 'package:myapp/model/ProfileConfig.dart';
 import 'package:myapp/provider/ProfileProvider.dart';
+import 'package:myapp/provider/RealTimeInfoProvider.dart';
 import 'package:myapp/widgets/InactiveInfoElement.dart';
 import 'package:provider/provider.dart';
 
@@ -16,19 +17,19 @@ class ProfileInfo extends StatelessWidget {
       height: 300,
       child: GridView.extent(
         maxCrossAxisExtent: 250,
-        childAspectRatio: 2.5,
+        childAspectRatio: 2.6,
         shrinkWrap: true,
-        padding: EdgeInsets.fromLTRB(16.0, 8.0, 32.0, 0),
+        padding: EdgeInsets.fromLTRB(16.0, 0, 32.0, 0),
         children: [
           NeumorphicButton(
-            margin: EdgeInsets.all(8.0),
+            margin: EdgeInsets.all(6.0),
             child: Center(
               child: Text(
                 "Cooler Boost",
                 style: TextStyle(
                   color: context
                           .watch<ProfileProvider>()
-                          .getCurrentProfile()
+                          .profile
                           .ec
                           .coolerBoostEnabled
                       ? null
@@ -41,20 +42,14 @@ class ProfileInfo extends StatelessWidget {
             onPressed: () =>
                 context.read<ProfileProvider>().toggleCoolerBoost(),
             style: NeumorphicStyle(
-              depth: context
-                      .watch<ProfileProvider>()
-                      .getCurrentProfile()
-                      .ec
-                      .coolerBoostEnabled
-                  ? -6
-                  : 6,
-              color: context
-                      .watch<ProfileProvider>()
-                      .getCurrentProfile()
-                      .ec
-                      .coolerBoostEnabled
-                  ? Theme.of(context).accentColor
-                  : null,
+              depth:
+                  context.watch<ProfileProvider>().profile.ec.coolerBoostEnabled
+                      ? -6
+                      : 6,
+              color:
+                  context.watch<ProfileProvider>().profile.ec.coolerBoostEnabled
+                      ? Theme.of(context).accentColor
+                      : null,
               boxShape:
                   NeumorphicBoxShape.roundRect(BorderRadius.circular(16.0)),
             ),
@@ -64,13 +59,19 @@ class ProfileInfo extends StatelessWidget {
               title: Text("Charging Limit"),
               subtitle: Text(context
                   .watch<ProfileProvider>()
-                  .getCurrentProfile()
+                  .profile
                   .ec
                   .chargingThreshold
                   .toString()),
               enabled: false,
             ),
           ),
+          InactiveInfoElement(
+              child: ListTile(
+            title: Text("Current Frequency"),
+            subtitle:
+                Text(toGhz(context.watch<RealTimeInfoProvider>().info.cpuFreq)),
+          )),
           InactiveInfoElement(
             child: ListTile(
               title: Text("Max Frequency"),
@@ -114,20 +115,20 @@ class ProfileInfo extends StatelessWidget {
           InactiveInfoElement(
             child: ListTile(
               title: Text("Turbo"),
-              trailing: context
-                      .watch<ProfileProvider>()
-                      .getCurrentProfile()
-                      .cpu
-                      .turboEnabled
-                  ? Icon(
-                      Icons.toggle_on_outlined,
-                      color: Theme.of(context).accentColor,
-                      size: 30,
-                    )
-                  : Icon(
-                      Icons.toggle_off_outlined,
-                      size: 30,
-                    ),
+              trailing:
+                  context.watch<ProfileProvider>().profile.cpu.turboEnabled
+                      ? Icon(
+                          Icons.toggle_on_outlined,
+                          color: Theme.of(context).accentColor,
+                          size: 30,
+                        )
+                      : Icon(
+                          Icons.toggle_off_outlined,
+                          color: NeumorphicTheme.isUsingDark(context)
+                              ? Colors.white38
+                              : null,
+                          size: 30,
+                        ),
             ),
           ),
         ],
