@@ -117,7 +117,7 @@ class FanChart extends StatelessWidget {
                   bottomTitles: SideTitles(
                     showTitles: true,
                     reservedSize: 22,
-                    getTextStyles: (value) => TextStyle(
+                    getTextStyles: (context, value) => TextStyle(
                         color: Theme.of(context).hintColor,
                         fontWeight: FontWeight.bold,
                         fontSize: 14),
@@ -128,7 +128,7 @@ class FanChart extends StatelessWidget {
                   leftTitles: SideTitles(
                     showTitles: true,
                     reservedSize: 18,
-                    getTextStyles: (value) => TextStyle(
+                    getTextStyles: (context, value) => TextStyle(
                         color: Theme.of(context).hintColor,
                         fontWeight: FontWeight.bold,
                         fontSize: 12),
