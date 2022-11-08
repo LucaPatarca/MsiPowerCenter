@@ -19,3 +19,6 @@ sudo cp -r profiles /opt/MsiPowerCenter/profiles
 sudo cp conf/msipowercenter.service /etc/systemd/system/
 sudo systemctl enable msipowercenter.service --now
 cp conf/msipowercenter.desktop /home/$USER/.local/share/applications/msipowercenter.desktop
+
+echo "MsiPowerCenter intalled successfully"
+echo "Reboot your computer to use it"
