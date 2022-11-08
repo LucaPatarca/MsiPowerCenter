@@ -1,6 +1,9 @@
 # MsiPowerCenter
 ### :warning: **WARNING!** Use it at your own risk!
 
+![MsiPowerCenter app light mode](/docs/light.png?raw=true "MsiPowerCenter app light mode")
+![MsiPowerCenter app dark mode](/docs/dark.png?raw=true "MsiPowerCenter app dark mode")
+
 ### Description
 MsiPowerCenter is a **Linux** application to manage the fan speed, power consumption and performance of my MSI Prestige 15 a11scx laptop. The idea comes from the official app **MSI Center for Business & Productivity** which only runs on Windows. 
 
@@ -22,6 +25,9 @@ At the moment in order to compile the app you need to have a complete flutter an
 Then you can just run the install.sh script and give it the root possword when required.
 
 ### These are some of the features that i plan to implement:
+- [ ] Simplify installation instruction/procedure
+- [ ] Replace the entire backend service with a linux kernel module
 - [ ] Make it more general so that it can work on different MSI computers
-- [ ] Add more and better profiles (at least 4 like the windows software)
-- [ ] User should be able to create fully customized profiles (using the GUI app)
+- [ ] Write a basic cli tool for automations and stuff
+- [x] Add more and better profiles (at least 4 like the windows software)
+- [ ] User will be able to create fully customized profiles (using the GUI app)
