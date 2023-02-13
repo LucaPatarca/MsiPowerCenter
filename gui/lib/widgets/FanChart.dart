@@ -1,5 +1,4 @@
 import 'package:fl_chart/fl_chart.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_neumorphic/flutter_neumorphic.dart';
 import 'package:myapp/model/FanConfig.dart';
 import 'package:myapp/model/ProfileConfig.dart';
@@ -59,22 +58,26 @@ class FanChart extends StatelessWidget {
 
   List<LineChartBarData> getDataWidget(BuildContext context) {
     var data = getRawData()
-        .map((e) => LineChartBarData(
+        .map(
+          (e) => LineChartBarData(
             spots: e
                 .map((e) => FlSpot(e.temp.toDouble(), e.speed.toDouble()))
                 .toList(),
             isCurved: true,
             barWidth: 5,
-            colors: gradientColors,
-            colorStops: [0, 0.4, 1],
+            gradient: LinearGradient(colors: gradientColors),
             isStrokeCapRound: true,
             dotData: FlDotData(show: false),
             belowBarData: BarAreaData(
               show: true,
-              colors: gradientColors
-                  .map((color) => color.withOpacity(0.2))
-                  .toList(),
-            )))
+              gradient: LinearGradient(
+                colors: gradientColors
+                    .map((color) => color.withOpacity(0.2))
+                    .toList(),
+              ),
+            ),
+          ),
+        )
         .toList();
     return data;
   }
@@ -104,37 +107,53 @@ class FanChart extends StatelessWidget {
                     },
                     horizontalInterval: 25,
                     verticalInterval: 10),
-                axisTitleData: FlAxisTitleData(
-                    topTitle: AxisTitle(
-                        showTitle: true,
-                        textAlign: TextAlign.center,
-                        textStyle: TextStyle(
-                            fontSize: 19,
-                            color: Theme.of(context).hintColor,
-                            fontWeight: FontWeight.bold))),
+                // axisTitleData: FlAxisTitleData(
+                //   topTitle: AxisTitle(
+                //     showTitle: true,
+                //     textAlign: TextAlign.center,
+                //     textStyle: TextStyle(
+                //         fontSize: 19,
+                //         color: Theme.of(context).hintColor,
+                //         fontWeight: FontWeight.bold),
+                //   ),
+                // ),
                 titlesData: FlTitlesData(
                   show: true,
-                  bottomTitles: SideTitles(
-                    showTitles: true,
-                    reservedSize: 22,
-                    getTextStyles: (context, value) => TextStyle(
-                        color: Theme.of(context).hintColor,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 14),
-                    getTitles: (value) => value.toInt().toString() + "C",
-                    interval: 10,
-                    margin: 8,
+                  bottomTitles: AxisTitles(
+                    sideTitles: SideTitles(
+                      showTitles: true,
+                      reservedSize: 22,
+                      getTitlesWidget: (double value, TitleMeta meta) =>
+                          SideTitleWidget(
+                        axisSide: meta.axisSide,
+                        child: Text(
+                          value.toInt().toString() + "C",
+                          style: TextStyle(
+                              color: Theme.of(context).hintColor,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 14),
+                        ),
+                      ),
+                      interval: 10,
+                    ),
                   ),
-                  leftTitles: SideTitles(
-                    showTitles: true,
-                    reservedSize: 18,
-                    getTextStyles: (context, value) => TextStyle(
-                        color: Theme.of(context).hintColor,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 12),
-                    getTitles: (value) => value.toInt().toString() + "%",
-                    interval: 25,
-                    margin: 16,
+                  leftTitles: AxisTitles(
+                    sideTitles: SideTitles(
+                      showTitles: true,
+                      reservedSize: 18,
+                      getTitlesWidget: (double value, TitleMeta meta) =>
+                          SideTitleWidget(
+                        axisSide: meta.axisSide,
+                        child: Text(
+                          value.toInt().toString() + "%",
+                          style: TextStyle(
+                              color: Theme.of(context).hintColor,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 12),
+                        ),
+                      ),
+                      interval: 25,
+                    ),
                   ),
                 ),
                 borderData: FlBorderData(
@@ -161,8 +180,7 @@ class FanChart extends StatelessWidget {
                                 .toDouble()),
                       ],
                       barWidth: 0.01,
-                      colors: gradientColors,
-                      colorStops: [0, 0.4, 1],
+                      gradient: LinearGradient(colors: gradientColors),
                       dotData: FlDotData(show: true),
                       belowBarData: BarAreaData(show: false))),
                 lineTouchData: LineTouchData(enabled: false),

@@ -1,5 +1,3 @@
-import 'dart:ui';
-import 'package:flutter/material.dart';
 import 'package:flutter_neumorphic/flutter_neumorphic.dart';
 import 'package:myapp/provider/ConfigProvider.dart';
 import 'package:myapp/provider/ProfileProvider.dart';

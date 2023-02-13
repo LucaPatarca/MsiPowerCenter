@@ -54,36 +54,36 @@ class ProfileInfo extends StatelessWidget {
                   NeumorphicBoxShape.roundRect(BorderRadius.circular(16.0)),
             ),
           ),
-          InactiveInfoElement(
-            child: ListTile(
-              title: Text("Charging Limit"),
-              subtitle: Text(context
-                  .watch<ProfileProvider>()
-                  .profile
-                  .ec
-                  .chargingThreshold
-                  .toString()),
-              enabled: false,
-            ),
-          ),
+          // InactiveInfoElement(
+          //   child: ListTile(
+          //     title: Text("Charging Limit"),
+          //     subtitle: Text(context
+          //         .watch<ProfileProvider>()
+          //         .profile
+          //         .ec
+          //         .chargingThreshold
+          //         .toString()),
+          //     enabled: false,
+          //   ),
+          // ),
           InactiveInfoElement(
               child: ListTile(
             title: Text("Current Frequency"),
             subtitle:
                 Text(toGhz(context.watch<RealTimeInfoProvider>().info.cpuFreq)),
           )),
-          InactiveInfoElement(
-            child: ListTile(
-              title: Text("Max Frequency"),
-              subtitle: Text(toGhz(profile.cpu.maxFreq)),
-            ),
-          ),
-          InactiveInfoElement(
-            child: ListTile(
-              title: Text("Min Frequency"),
-              subtitle: Text(toGhz(profile.cpu.minFreq)),
-            ),
-          ),
+          // InactiveInfoElement(
+          //   child: ListTile(
+          //     title: Text("Max Frequency"),
+          //     subtitle: Text(toGhz(profile.cpu.maxFreq)),
+          //   ),
+          // ),
+          // InactiveInfoElement(
+          //   child: ListTile(
+          //     title: Text("Min Frequency"),
+          //     subtitle: Text(toGhz(profile.cpu.minFreq)),
+          //   ),
+          // ),
           InactiveInfoElement(
             child: ListTile(
               title: Text("Max Performance"),
